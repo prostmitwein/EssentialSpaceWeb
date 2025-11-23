@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Essential Space</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1 class="brand">ESSENTIAL SPACE</h1>
+            <div class="dots">:::</div>
+        </header>
+
+        <div class="main-wrapper">
+            <main>
+                <section class="widgets-grid">
+                    <div class="widget" id="recentWidget">
+                        <div class="widget-header">RECENT</div>
+                        <div class="widget-content">
+                            <div class="preview-box" id="recentPreview"></div>
+                            <p id="recentText">No recent items</p>
+                        </div>
+                        <div class="widget-footer" id="recentTime">--:--</div>
+                    </div>
+                    <div class="widget" id="upcomingWidget">
+                        <div class="widget-header">UPCOMING</div>
+                        <div class="widget-content text-content">
+                            <p id="upcomingTitle">No upcoming events</p>
+                            <small id="upcomingDesc" style="color: #666; display: block; margin-top: 5px;"></small>
+                        </div>
+                        <div class="widget-footer accent" id="upcomingTime">--:--</div>
+                    </div>
+                </section>
+
+                <section class="memory-section">
+                    <h2 class="section-title">MEMORY</h2>
+                    <div class="memory-list" id="memoryList">
+                        <!-- Naman Here, Items will be injected by JS -->
+                    </div>
+                </section>
+            </main>
+
+            <aside class="filter-sidebar">
+                <h3 class="sidebar-title">FILTERS</h3>
+                <ul id="tagFilterList">
+                    <li class="active" data-tag="all">ALL</li>
+                    <!-- Naman Here, Tags injected by JS -->
+                </ul>
+            </aside>
+        </div>
+
+        <button class="fab" id="addBtn">+</button>
+
+        <!-- Add Note Modal -->
+        <div class="modal-overlay" id="addModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>NEW ENTRY</h3>
+                    <button class="close-btn" id="closeAddModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>TYPE</label>
+                        <select id="noteType">
+                            <option value="[NOTE]">[NOTE]</option>
+                            <option value="[PHOTO]">[PHOTO]</option>
+                            <option value="[EVENT]">[EVENT]</option>
+                            <option value="[IDEA]">[IDEA]</option>
+                            <option value="[TASK]">[TASK]</option>
+                        </select>
+                    </div>
+
+                    <!-- Event Specific Fields -->
+                    <div id="eventFields" style="display: none;">
+                        <div class="form-group">
+                            <label>DATE & TIME</label>
+                            <input type="datetime-local" id="eventDate">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>CONTENT / DESCRIPTION</label>
+                        <div class="textarea-wrapper" style="position: relative;">
+                            <textarea id="noteContent" rows="4" placeholder="Type something..."></textarea>
+                            <button id="micBtn" class="mic-btn" title="Dictate">🎤</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>TAGS (Press Enter)</label>
+                        <div class="tag-input-container">
+                            <div id="addTagsList" class="tags-list"></div>
+                            <input type="text" id="addTagInput" placeholder="Add tag...">
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="imageUploadGroup" style="display: none;">
+                        <label>IMAGE <span id="aiStatus"
+                                style="font-size: 10px; color: var(--accent-color); margin-left: 10px;"></span></label>
+                        <input type="file" id="noteImage" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="modal-actions-right" style="width: 100%; justify-content: flex-end;">
+                        <button class="btn-primary" id="saveNoteBtn">SAVE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Note Modal -->
+        <div class="modal-overlay" id="viewModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="viewType">ENTRY</h3>
+                    <button class="close-btn" id="closeViewModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <div id="viewImageContainer"></div>
+                    <p id="viewContent" class="view-text"></p>
+
+                    <div class="form-group">
+                        <label>TAGS</label>
+                        <div class="tag-input-container">
+                            <div id="viewTagsList" class="tags-list"></div>
+                            <input type="text" id="viewTagInput" placeholder="Add tag...">
+                        </div>
+                    </div>
+
+                    <div class="meta-info">
+                        <span id="viewTime"></span>
+                        <div id="viewEventDetails" style="margin-top: 5px; color: var(--accent-color);"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="pinNoteBtn">PIN</button>
+                    <button class="btn-danger" id="deleteNoteBtn">DELETE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="db.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
