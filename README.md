@@ -42,3 +42,9 @@ To run this project, you only need a modern web browser. No complex installation
 ## 🤝 Contributing
 
 Feel free to fork this project and submit pull requests. Suggestions and improvements are always welcome!
+
+Images:<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-22" src="https://github.com/user-attachments/assets/2e1210a4-6b47-43d7-a9f3-8e3945e29ddc" />
+<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-31" src="https://github.com/user-attachments/assets/fb238526-4882-4975-9129-d3940c35922e" />
+<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-39" src="https://github.com/user-attachments/assets/9bcda7d5-6467-4682-b9cf-3b723ea0e7ad" />
+<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-46" src="https://github.com/user-attachments/assets/f120151e-a0a6-4748-a2f3-d41e817cb701" />
+<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-51" src="https://github.com/user-attachments/assets/b720a1bf-59c6-4776-992e-3ee5d369dd24" />
