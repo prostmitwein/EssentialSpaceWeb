@@ -127,10 +127,27 @@ header {
     letter-spacing: 1px;
 }
 
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .dots {
     color: var(--accent-color);
     font-size: 24px;
     letter-spacing: 2px;
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--accent-color);
+    font-size: 20px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 /* Widgets */
@@ -689,27 +706,123 @@ input[type="file"] {
     border-radius: 3px;
 }
 
-/* Responsive ahh I love making ai write comments it saves us sooooo much time. This is why we have ai, To document humanities progress. Ad astra per aspera et ultra. */
+/* Responsive */
 @media (max-width: 768px) {
-    .main-wrapper {
-        flex-direction: column;
+    body {
+        padding-left: 0;
     }
 
-    .filter-sidebar {
+    .app-container {
         width: 100%;
+        padding: 20px 15px;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .dots {
+        display: none;
+    }
+
+    .main-wrapper {
+        flex-direction: column;
+        position: relative;
+    }
+
+    /* Off-canvas Sidebar */
+    .filter-sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px; /* Hide off-screen */
+        width: 250px;
+        height: 100vh;
+        background-color: var(--widget-bg);
+        border-right: 1px solid var(--border-color);
         border-left: none;
-        border-top: 1px solid var(--border-color);
-        padding-left: 0;
-        padding-top: 20px;
+        border-top: none;
+        padding: 20px;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+        text-align: left;
+    }
+
+    .filter-sidebar.active {
+        left: 0;
+    }
+
+    /* Overlay for sidebar */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
     }
 
     .widgets-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .memory-list {
+        grid-template-columns: 1fr; /* Single column for mobile */
+        gap: 15px;
+    }
+
+    .fab-container {
+        right: 20px;
+        bottom: 20px;
+        gap: 10px;
     }
 
     .fab {
-        right: 20px;
-        bottom: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+
+    .settings-menu {
+        right: 0;
+        bottom: 70px; /* Adjust for smaller FAB */
+    }
+    
+    /* Touch Optimizations */
+    button, 
+    .memory-item,
+    .widget,
+    input,
+    select,
+    textarea {
+        cursor: default; /* Remove pointer cursor on touch */
+    }
+
+    .memory-item:hover,
+    .widget:hover {
+        transform: none; /* Disable hover lift */
+        border-color: var(--border-color);
+    }
+    
+    /* Increase tap targets */
+    #tagFilterList li {
+        padding: 12px 0;
+        font-size: 16px;
+    }
+    
+    .close-btn {
+        padding: 10px; /* Larger hit area */
     }
 }
 

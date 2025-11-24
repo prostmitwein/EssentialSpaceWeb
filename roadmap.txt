@@ -1,0 +1,50 @@
+PLATFORM DETECTION AND UI ADAPTATION ROADMAP
+
+1. DETECTION STRATEGY
+---------------------
+The goal is to seamlessly adapt the interface based on the device type (PC/Desktop vs. Android/Mobile).
+
+A. CSS Media Queries (Primary Method)
+   - Use CSS media queries to detect screen width and input capabilities.
+   - This handles 90% of UI adaptation without needing JavaScript logic.
+   - Key Breakpoints:
+     - Mobile: max-width: 768px
+     - Tablet: max-width: 1024px
+     - Desktop: min-width: 1025px
+
+B. JavaScript Detection (Secondary Method)
+   - Use `navigator.userAgent` to detect specific OS if strictly necessary (e.g., for Android-specific deep links or behavior).
+   - Use `window.matchMedia('(pointer: coarse)')` to detect touch devices specifically, regardless of screen size.
+
+2. PC / DESKTOP UI SPECIFICATIONS
+---------------------------------
+- Layout:
+  - Multi-column grid system.
+  - Sidebar/Navigation visible by default or easily accessible via hover.
+  - Content spreads horizontally to utilize available screen real estate.
+
+- Interactions:
+  - Hover effects enabled (tooltips, button highlights, card lifts).
+  - Custom cursor support (if applicable to design).
+  - Right-click context menus enabled.
+  - Keyboard shortcuts (hotkeys) for power users.
+
+3. ANDROID / MOBILE UI SPECIFICATIONS
+-------------------------------------
+- Layout:
+  - Single-column, vertical scrolling stack.
+  - Navigation moves to a bottom bar or a hamburger menu (off-canvas).
+  - Elements are full-width or large cards.
+
+- Interactions:
+  - Touch-optimized: Larger tap targets (min 44x44px) for buttons and links.
+  - Disable hover effects (convert to tap or remove).
+  - Swipe gestures (e.g., swipe to delete, swipe between tabs).
+  - Long-press actions instead of right-click context menus.
+  - Virtual keyboard handling (ensure input fields don't get hidden).
+
+4. IMPLEMENTATION STEPS
+-----------------------
+1. Define CSS variables for spacing and font sizes that scale with viewports.
+2. Implement a `mobile-detected` class on the `<body>` via JS on load if `(pointer: coarse)` is true, to scope specific CSS overrides.
+3. Test on Chrome DevTools Device Mode and actual Android devices.

@@ -49,6 +49,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Sidebar
     const tagFilterList = document.getElementById('tagFilterList');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const filterSidebar = document.querySelector('.filter-sidebar');
 
     let currentViewId = null;
     let currentNote = null;
@@ -117,6 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             li.onclick = () => {
                 currentFilter = tag;
                 refreshAll();
+                closeMobileMenu();
             };
             tagFilterList.appendChild(li);
         });
@@ -124,7 +128,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         tagFilterList.querySelector('[data-tag="all"]').onclick = () => {
             currentFilter = null;
             refreshAll();
+            closeMobileMenu();
         };
+    }
+
+    // Mobile Menu Logic
+    function toggleMobileMenu() {
+        filterSidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    }
+
+    function closeMobileMenu() {
+        filterSidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    }
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', () => {
+            closeMobileMenu();
+        });
     }
 
     // Render Items (Grid)
