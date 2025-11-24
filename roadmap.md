@@ -19,5 +19,5 @@ Add powerful features that respect the user's attention.
 ## Phase 3: Customization
 Allow users to make the space their own without breaking the design system.
 
-- [ ] **Theme Engine**: Add a toggle for Light/Dark mode and allow selection of a custom accent color (replacing the default red).
+- [.] **Theme Engine**: Add a toggle for Light/Dark mode and allow selection of a custom accent color (replacing the default red).
 - [ ] **Custom Widgets**: Enable users to toggle widget visibility or add simple new ones (e.g., a countdown timer).
