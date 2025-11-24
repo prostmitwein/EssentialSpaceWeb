@@ -45,8 +45,11 @@ To run this project, you only need a modern web browser. No complex installation
 
 Feel free to fork this project and submit pull requests. Suggestions and improvements are always welcome!
 
-Images:<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-22" src="https://github.com/user-attachments/assets/2e1210a4-6b47-43d7-a9f3-8e3945e29ddc" />
-<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-31" src="https://github.com/user-attachments/assets/fb238526-4882-4975-9129-d3940c35922e" />
-<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-39" src="https://github.com/user-attachments/assets/9bcda7d5-6467-4682-b9cf-3b723ea0e7ad" />
-<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-46" src="https://github.com/user-attachments/assets/f120151e-a0a6-4748-a2f3-d41e817cb701" />
-<img width="1920" height="930" alt="Screenshot From 2025-11-23 16-23-51" src="https://github.com/user-attachments/assets/b720a1bf-59c6-4776-992e-3ee5d369dd24" />
+<img width="1920" height="928" alt="1 2 8" src="https://github.com/user-attachments/assets/07278d31-636c-487b-92d3-512ef6a49e6c" />
+<img width="1920" height="928" alt="1 2 7" src="https://github.com/user-attachments/assets/1c720726-80a0-4404-b901-cfc962a3e1e7" />
+<img width="1920" height="928" alt="1 2 6" src="https://github.com/user-attachments/assets/4d9af0da-dcd4-40d1-8dcf-09971c7eccce" />
+<img width="1920" height="928" alt="1 2 5" src="https://github.com/user-attachments/assets/77f7f582-1930-4319-b69e-0726f1005156" />
+<img width="1920" height="928" alt="1 2 4" src="https://github.com/user-attachments/assets/3f01f431-0680-4931-a93e-0888aae25b6b" />
+<img width="1920" height="928" alt="1 2 3" src="https://github.com/user-attachments/assets/e2109733-2fd0-43dc-a7c6-68dffbb2a8c6" />
+<img width="1920" height="928" alt="1 2 2" src="https://github.com/user-attachments/assets/92b64c6e-0efc-42bb-b746-103ffa463e9d" />
+<img width="1920" height="928" alt="1 2 1" src="https://github.com/user-attachments/assets/3bd2ba28-a146-4f36-acc4-2b21cb0fa755" />
