@@ -4,15 +4,18 @@
 
 **EssentialSpaceWeb** is a minimalist web application designed to help you organize your thoughts, tasks, and memories without distractions. Built with a unique "Dot Matrix" aesthetic, it offers a clutter-free environment that mimics the Essential Space feature found on Nothing phones, but right in your browser.
 
+> **Note**: This is now live on Github pages to be used on any device woohoo~!!!
+
 ## ✨ Features
 
-*   **Privacy First**: All data is stored locally on your device using IndexedDB. No data is ever sent to the cloud.
+*   **Privacy First**: All data is stored locally on your device using IndexedDB. No data is ever sent to the cloud, I am working to add local transcription for voice notes to enhance privacy.
 *   **Versatile Note Types**: Create various types of entries to suit your needs:
     *   `[NOTE]`: Standard text notes.
     *   `[PHOTO]`: Save memories with images.
     *   `[EVENT]`: Track upcoming events with dates and times.
     *   `[IDEA]`: Capture fleeting thoughts.
     *   `[TASK]`: Manage your to-do list.
+    *   `[VOICE]`: Added voice notes with transcript.
 *   **Smart Widgets**:
     *   **Recent**: Instantly view your most recent media capture.
     *   **Upcoming**: Always see your next scheduled event at a glance.
