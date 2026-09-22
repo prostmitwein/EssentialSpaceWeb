@@ -58,6 +58,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentFilter = null;
     let classifier = null;
 
+    // Header Live Clock & Item Count
+    const headerClock = document.getElementById('headerClock');
+    const itemCountDisplay = document.getElementById('itemCountDisplay');
+
+    function updateHeaderClock() {
+        if (headerClock) {
+            const now = new Date();
+            headerClock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+    }
+    setInterval(updateHeaderClock, 1000);
+    updateHeaderClock();
+
     // Initialize DB
     try {
         await db.init();
@@ -156,12 +169,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    function formatType(type) {
+        if (!type) return '';
+        return type.replace(/^\[|\]$/g, '');
+    }
+
     // Render Items (Grid)
     function renderItems(items) {
         memoryList.innerHTML = '';
-        items.forEach(item => {
+        if (itemCountDisplay) {
+            itemCountDisplay.textContent = `( ${items.length} )`;
+        }
+        items.forEach((item, index) => {
             const itemEl = document.createElement('div');
-            itemEl.className = `memory-item ${item.isPinned ? 'pinned' : ''}`;
+            // Pseudo-random hash for organic randomized layout (span 1 rect vs span 2 square)
+            const seed = (typeof item.id === 'number' ? item.id * 31 : index * 47) + (item.timestamp ? item.timestamp.length : 0);
+            const isSquare = ((seed * 19 + 7) % 5) < 2;
+            const shapeClass = isSquare ? 'shape-square' : 'shape-rect';
+
+            itemEl.className = `memory-item ${item.isPinned ? 'pinned' : ''} ${shapeClass}`;
             itemEl.onclick = () => openViewModal(item);
 
             // Format time relative
@@ -178,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ${pinHtml}
                 ${previewHtml}
                 <div class="item-left">
-                    <span class="item-type">${item.type}</span>
+                    <span class="item-type">${formatType(item.type)}</span>
                     ${item.type === '[VOICE]' && item.audioBlob ? `
                         <div class="audio-player-custom">
                             <button class="audio-play-btn" onclick="event.stopPropagation(); const audio = this.nextElementSibling; audio.paused ? audio.play() : audio.pause();">▶</button>
@@ -448,7 +474,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function openViewModal(item) {
         currentViewId = item.id;
         currentNote = item;
-        viewType.textContent = item.type;
+        viewType.textContent = formatType(item.type);
         viewTime.textContent = new Date(item.timestamp).toLocaleString();
 
         if (item.type === '[VOICE]' && item.audioBlob) {

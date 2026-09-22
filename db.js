@@ -1,7 +1,7 @@
 class StorageService {
     constructor() {
         this.dbName = 'EssentialSpaceDB';
-        this.dbVersion = 3; // Increment for tags
+        this.dbVersion = 3; 
         this.db = null;
     }
 
@@ -26,8 +26,6 @@ class StorageService {
                     objectStore.createIndex("type", "type", { unique: false });
                     objectStore.createIndex("timestamp", "timestamp", { unique: false });
                 }
-                // No new index needed for tags array unless we want to query by tag directly, 
-                // but filtering in memory is fine for this scale.
             };
         });
     }
@@ -79,12 +77,10 @@ class StorageService {
             request.onsuccess = (event) => {
                 let notes = event.target.result;
 
-                // Filter by tag if provided
                 if (filterTag) {
                     notes = notes.filter(note => note.tags && note.tags.includes(filterTag));
                 }
 
-                // Sort: Pinned first, then by timestamp descending, yall can change the order based on your wishes. I may add a feature to change order manually later.
                 notes.sort((a, b) => {
                     if (a.isPinned && !b.isPinned) return -1;
                     if (!a.isPinned && b.isPinned) return 1;
@@ -120,7 +116,6 @@ class StorageService {
             const transaction = this.db.transaction(["notes"], "readwrite");
             const objectStore = transaction.objectStore("notes");
             const request = objectStore.get(id);
-
             request.onsuccess = (event) => {
                 const note = event.target.result;
                 if (note) {
@@ -170,11 +165,9 @@ class StorageService {
 
             request.onsuccess = (event) => {
                 const notes = event.target.result;
-                // Filter for items with images
                 const media = notes.filter(n => n.imageData);
-                // Sort by timestamp desc
                 media.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                resolve(media[0] || null); // Return newest or null
+                resolve(media[0] || null); 
             };
             request.onerror = (event) => {
                 reject(event.target.error);
@@ -206,5 +199,4 @@ class StorageService {
     }
 }
 
-// Export instance
 const db = new StorageService();

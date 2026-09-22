@@ -1,0 +1,124 @@
+==============================================================================
+              ESSENTIAL SPACE WEB — COLOR PALETTE SPECIFICATION
+              Based on Nothing OS 5 Design Principles (Grey & Off-Tones)
+              + Project-Specific Brand Accent Colors
+==============================================================================
+
+DESIGN PHILOSOPHY
+Core palette follows Nothing OS 5 focus on grey and off-tone translucent 
+overlays rather than solid colors. Yellow and Red are PROJECT-SPECIFIC 
+accent colors added for this application (not part of Nothing OS official).
+
+==============================================================================
+
+1. REFINED GREY SCALE (Foundation for Both Themes)
+------------------------------------------------------------------------------
+DARK GREY TONES:
+Grey 950 (--grey-950)                  : #0F0F11  (Near-black, deepest shadows)
+Grey 900 (--grey-900)                  : #141416  (Dark base layer)
+Grey 850 (--grey-850)                  : #18181B  (Slightly lighter dark)
+Grey 800 (--grey-800)                  : #202024  (Nothing OS Slate - Primary dark)
+Grey 750 (--grey-750)                  : #262629  (Elevated surface)
+Grey 700 (--grey-700)                  : #2C2C31  (Card/container background)
+Grey 650 (--grey-650)                  : #323237  (Subtle layering)
+
+MID GREY TONES:
+Grey 600 (--grey-600)                  : #3E3E47  (Neutral midpoint)
+Grey 550 (--grey-550)                  : #4A4A53  (Interactive hover)
+Grey 500 (--grey-500)                  : #555560  (Balance grey)
+
+LIGHT GREY TONES:
+Grey 400 (--grey-400)                  : #707079  (Muted text)
+Grey 350 (--grey-350)                  : #82828C  (Secondary text)
+Grey 300 (--grey-300)                  : #A2A2AC  (Tertiary text)
+Grey 250 (--grey-250)                  : #B8B8C2  (Disabled text)
+Grey 200 (--grey-200)                  : #DCDCE4  (Light borders)
+Grey 150 (--grey-150)                  : #E8E8EF  (Off-white borders)
+Grey 100 (--grey-100)                  : #F3F3F8  (Near-white)
+
+
+2. DARK THEME PALETTE (Default)
+------------------------------------------------------------------------------
+Primary Background (--bg-color)        : #202024  (Grey 800 - Nothing OS Slate)
+Secondary Background (--bg-secondary)  : #262629  (Grey 750 - Elevated surfaces)
+Tertiary Background (--bg-tertiary)    : #2C2C31  (Grey 700 - Cards & containers)
+Text Primary (--text-color)            : #F8F8FA  (High-contrast Off-White)
+Text Secondary (--text-secondary)      : #E8E8EF  (Grey 150 - Secondary text)
+Text Muted (--text-muted)              : #A2A2AC  (Grey 300 - Subtle metadata)
+Text Disabled (--text-disabled)        : #707079  (Grey 400 - Inactive text)
+
+Widget Card Background (--widget-bg)   : rgba(40, 40, 46, 0.78) (Grey 800 + translucent glass)
+Memory Item Background (--item-bg)     : rgba(34, 34, 40, 0.88) (Grey 750 + translucent slate)
+Media Preview Background (--preview-bg): #2A2A30  (Grey 850 - Dark container)
+
+Border Default (--border-color)        : rgba(255, 255, 255, 0.12) (Subtle white overlay)
+Border Secondary (--border-secondary)  : rgba(255, 255, 255, 0.08) (Very subtle)
+Border Hover (--border-hover)          : rgba(255, 255, 255, 0.32) (Emphasized)
+Border Strong (--border-strong)        : rgba(255, 255, 255, 0.50) (High contrast)
+
+Divider Light (--divider-light)        : rgba(255, 255, 255, 0.05)
+Divider Default (--divider-default)    : rgba(255, 255, 255, 0.12)
+Divider Strong (--divider-strong)      : rgba(255, 255, 255, 0.20)
+
+Dot Matrix Background Pattern          : rgba(255, 255, 255, 0.05)
+Overlay Subtle (--overlay-subtle)      : rgba(0, 0, 0, 0.20)
+Overlay Medium (--overlay-medium)      : rgba(0, 0, 0, 0.40)
+Overlay Strong (--overlay-strong)      : rgba(0, 0, 0, 0.60)
+
+
+3. LIGHT THEME PALETTE (Alabaster Paper)
+------------------------------------------------------------------------------
+Primary Background (--bg-color)        : #F9F9F7  (Alabaster - Off-white base)
+Secondary Background (--bg-secondary)  : #F3F3F8  (Grey 100 - Elevated surfaces)
+Tertiary Background (--bg-tertiary)    : #EAEAEA  (Light Grey - Cards & containers)
+Text Primary (--text-color)            : #1A1A1E  (Near-Black Typography)
+Text Secondary (--text-secondary)      : #4A4A53  (Grey 550 - Secondary text)
+Text Muted (--text-muted)              : #82828C  (Grey 350 - Subtle metadata)
+Text Disabled (--text-disabled)        : #B8B8C2  (Grey 250 - Inactive text)
+
+Widget Card Background (--widget-bg)   : rgba(255, 255, 255, 0.82) (White + translucent)
+Memory Item Background (--item-bg)     : rgba(255, 255, 255, 0.92) (White + subtle overlay)
+Media Preview Background (--preview-bg): #E8E8EF  (Grey 150 - Light container)
+
+Border Default (--border-color)        : rgba(0, 0, 0, 0.10) (Subtle dark overlay)
+Border Secondary (--border-secondary)  : rgba(0, 0, 0, 0.06) (Very subtle)
+Border Hover (--border-hover)          : rgba(0, 0, 0, 0.28) (Emphasized)
+Border Strong (--border-strong)        : rgba(0, 0, 0, 0.50) (High contrast)
+
+Divider Light (--divider-light)        : rgba(0, 0, 0, 0.05)
+Divider Default (--divider-default)    : rgba(0, 0, 0, 0.10)
+Divider Strong (--divider-strong)      : rgba(0, 0, 0, 0.20)
+
+Dot Matrix Background Pattern          : rgba(0, 0, 0, 0.06)
+Overlay Subtle (--overlay-subtle)      : rgba(0, 0, 0, 0.15)
+Overlay Medium (--overlay-medium)      : rgba(0, 0, 0, 0.35)
+Overlay Strong (--overlay-strong)      : rgba(0, 0, 0, 0.55)
+
+
+4. INTERACTIVE STATES (Grey-Based)
+------------------------------------------------------------------------------
+-- DARK MODE STATES --
+Hover Background (Dark)                : rgba(255, 255, 255, 0.08) (Subtle lift)
+Active Background (Dark)               : rgba(255, 255, 255, 0.15) (Pressed state)
+Focus Ring (Dark)                      : 2px solid rgba(255, 255, 255, 0.40)
+Disabled Background (Dark)             : rgba(128, 128, 128, 0.20)
+
+-- LIGHT MODE STATES --
+Hover Background (Light)               : rgba(0, 0, 0, 0.05) (Subtle lift)
+Active Background (Light)              : rgba(0, 0, 0, 0.12) (Pressed state)
+Focus Ring (Light)                     : 2px solid rgba(0, 0, 0, 0.30)
+Disabled Background (Light)            : rgba(128, 128, 128, 0.15)
+
+
+5. PROJECT-SPECIFIC BRAND ACCENTS
+------------------------------------------------------------------------------
+Project Red (--accent-red)             : #FF2E2E  (Project-specific highlight)
+Project Yellow (--accent-yellow)       : #FFC700  (Project-specific secondary)
+Active Accent (--accent-color)         : #FF2E2E  (User Selectable: Red / Yellow)
+
+Danger / Delete Text & Border          : #FF4444  (Warning Red)
+Danger Hover Background                : rgba(255, 68, 68, 0.12)
+Pinned Badge Tint                      : rgba(255, 46, 46, 0.15)
+Modal Overlay Mask                     : rgba(0, 0, 0, 0.75) (Backdrop Blur Mask)
+
+==============================================================================

@@ -4,19 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Essential Space</title>
+    <title>Essential Space — Nothing OS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+    <div class="bg-dot-grid"></div>
+
     <div class="app-container">
         <header>
-            <h1 class="brand">ESSENTIAL SPACE</h1>
+            <div class="brand-group">
+                <h1 class="brand">ESSENTIAL SPACE</h1>
+                <span class="sub-version">( 2 )</span>
+            </div>
             <div class="header-controls">
-                <div class="dots">:::</div>
+                <div class="header-clock-box">
+                    <span id="headerClock" class="header-clock">00:00</span>
+                </div>
+                <div class="dots-matrix">:::</div>
                 <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Menu">☰</button>
             </div>
         </header>
@@ -26,7 +34,10 @@
             <main>
                 <section class="widgets-grid">
                     <div class="widget" id="recentWidget">
-                        <div class="widget-header">RECENT</div>
+                        <div class="widget-header">
+                            <span class="widget-title">RECENT CAPTURE</span>
+                            <span class="widget-glyph">•</span>
+                        </div>
                         <div class="widget-content">
                             <div class="preview-box" id="recentPreview"></div>
                             <p id="recentText">No recent items</p>
@@ -34,17 +45,23 @@
                         <div class="widget-footer" id="recentTime">--:--</div>
                     </div>
                     <div class="widget" id="upcomingWidget">
-                        <div class="widget-header">UPCOMING</div>
+                        <div class="widget-header">
+                            <span class="widget-title">UPCOMING EVENT</span>
+                            <span class="widget-glyph">•</span>
+                        </div>
                         <div class="widget-content text-content">
                             <p id="upcomingTitle">No upcoming events</p>
-                            <small id="upcomingDesc" style="color: #666; display: block; margin-top: 5px;"></small>
+                            <small id="upcomingDesc" class="upcoming-desc"></small>
                         </div>
                         <div class="widget-footer accent" id="upcomingTime">--:--</div>
                     </div>
                 </section>
 
                 <section class="memory-section">
-                    <h2 class="section-title">MEMORY</h2>
+                    <div class="section-header-bar">
+                        <h2 class="section-title">MEMORIES</h2>
+                        <span class="section-glyph-count" id="itemCountDisplay">( 0 )</span>
+                    </div>
                     <div class="memory-list" id="memoryList">
                         <!-- Items will be injected by JS -->
                     </div>
@@ -52,7 +69,7 @@
             </main>
 
             <aside class="filter-sidebar">
-                <h3 class="sidebar-title">FILTERS</h3>
+                <h3 class="sidebar-title">TAG FILTERS</h3>
                 <ul id="tagFilterList">
                     <li class="active" data-tag="all">ALL</li>
                     <!-- Tags injected by JS -->
@@ -78,8 +95,8 @@
                     </div>
                 </div>
             </div>
-            <button class="fab secondary" id="settingsBtn">☰</button>
-            <button class="fab primary" id="addBtn">+</button>
+            <button class="fab secondary" id="settingsBtn" aria-label="Settings">☰</button>
+            <button class="fab primary" id="addBtn" aria-label="Add Note">+</button>
         </div>
 
         <!-- Add Note Modal -->
@@ -93,12 +110,12 @@
                     <div class="form-group">
                         <label>TYPE</label>
                         <select id="noteType">
-                            <option value="[NOTE]">[NOTE]</option>
-                            <option value="[PHOTO]">[PHOTO]</option>
-                            <option value="[VOICE]">[VOICE]</option>
-                            <option value="[EVENT]">[EVENT]</option>
-                            <option value="[IDEA]">[IDEA]</option>
-                            <option value="[TASK]">[TASK]</option>
+                            <option value="[NOTE]">NOTE</option>
+                            <option value="[PHOTO]">PHOTO</option>
+                            <option value="[VOICE]">VOICE</option>
+                            <option value="[EVENT]">EVENT</option>
+                            <option value="[IDEA]">IDEA</option>
+                            <option value="[TASK]">TASK</option>
                         </select>
                     </div>
 
@@ -113,9 +130,11 @@
                     <!-- Voice Recorder UI -->
                     <div id="voiceRecorder" style="display: none;">
                         <div class="recorder-container">
-                            <div class="recorder-status">IDLE</div>
-                            <div class="recorder-timer">00:00</div>
-                            <div class="recorder-visualizer">
+                            <div class="recorder-header">
+                                <div class="recorder-status">IDLE</div>
+                                <div class="recorder-timer">00:00</div>
+                            </div>
+                            <div class="recorder-visualizer" id="recorderVisualizer">
                                 <div class="bar"></div>
                                 <div class="bar"></div>
                                 <div class="bar"></div>
@@ -142,7 +161,7 @@
                     <div class="form-group">
                         <label>CONTENT / DESCRIPTION</label>
                         <div class="textarea-wrapper" style="position: relative;">
-                            <textarea id="noteContent" rows="4" placeholder="Type something..."></textarea>
+                            <textarea id="noteContent" rows="4" placeholder="Write entry content..."></textarea>
                             <button id="micBtn" class="mic-btn" title="Dictate">🎤</button>
                         </div>
                     </div>
@@ -157,13 +176,13 @@
 
                     <div class="form-group" id="imageUploadGroup" style="display: none;">
                         <label>IMAGE <span id="aiStatus"
-                                style="font-size: 10px; color: var(--accent-color); margin-left: 10px;"></span></label>
+                                style="font-size: 11px; color: var(--accent-color); margin-left: 10px;"></span></label>
                         <input type="file" id="noteImage" accept="image/*">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <div class="modal-actions-right" style="width: 100%; justify-content: flex-end;">
-                        <button class="btn-primary" id="saveNoteBtn">SAVE</button>
+                    <div class="modal-actions-right" style="width: 100%; display: flex; justify-content: flex-end;">
+                        <button class="btn-primary" id="saveNoteBtn">SAVE ENTRY</button>
                     </div>
                 </div>
             </div>
@@ -178,7 +197,7 @@
                 </div>
                 <div class="modal-body">
                     <div id="viewImageContainer"></div>
-                    <p id="viewContent" class="view-text"></p>
+                    <div id="viewContent" class="view-text"></div>
 
                     <div class="form-group">
                         <label>TAGS</label>
