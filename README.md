@@ -1,21 +1,21 @@
 # EssentialSpaceWeb
 
-> A privacy-focused, local-first notespace inspired by the "Essential" design philosophy of Nothing OS.
+> A privacy focused, notespace inspired by the "Essential" design philosophy of Nothing OS.
 
-**EssentialSpaceWeb** is a minimalist web application designed to help you organize your thoughts, tasks, and memories without distractions. Built with a unique "Dot Matrix" aesthetic, it offers a clutter-free environment that mimics the Essential Space feature found on Nothing phones, but right in your browser.
+**EssentialSpaceWeb** is a web application designed to help you organize your thoughts, tasks, and memories without distractions. It offers a clutter free environment that mimics the Essential Space feature found on Nothing phones right in your browser.
 
 > **Note**: This is now live on Github pages to be used on any device woohoo~!!!
 
-## ✨ Features
+## Features
 
 *   **Privacy First**: All data is stored locally on your device using IndexedDB. No data is ever sent to the cloud, I am working to add local transcription for voice notes to enhance privacy.
 *   **Versatile Note Types**: Create various types of entries to suit your needs:
-    *   `[NOTE]`: Standard text notes.
-    *   `[PHOTO]`: Save memories with images.
-    *   `[EVENT]`: Track upcoming events with dates and times.
-    *   `[IDEA]`: Capture fleeting thoughts.
-    *   `[TASK]`: Manage your to-do list.
-    *   `[VOICE]`: Added voice notes with transcript.
+    *   `NOTE`: Standard text notes.
+    *   `PHOTO`: Save memories with images.
+    *   `EVENT`: Track upcoming events with dates and times.
+    *   `IDEA`: Capture fleeting thoughts.
+    *   `TASK`: Manage your to-do list.
+    *   `VOICE`: Added voice notes with transcript.
 *   **Smart Widgets**:
     *   **Recent**: Instantly view your most recent media capture.
     *   **Upcoming**: Always see your next scheduled event at a glance.
@@ -25,7 +25,7 @@
     *   **Filtering**: Easily filter your view by tags to focus on what matters.
 *   **Responsive Design**: A fluid layout that adapts to different screen sizes while maintaining its distinctive look.
 
-## 🛠️ Prerequisites
+##  Prerequisites
 
 To run this project, you only need a modern web browser. No complex installation or build tools are required.
 
@@ -36,7 +36,7 @@ To run this project, you only need a modern web browser. No complex installation
 *   **Zen**
 *   **Safari**(based on chromium so it should ideally work)(It basically works on any browser tbh)
 
-## 🚀 Getting Started
+##  Getting Started
 
 1.  **Download** or **Clone** this repository to your local machine.
 2.  **Open** the project folder.
@@ -44,7 +44,7 @@ To run this project, you only need a modern web browser. No complex installation
 
 > **Tip**: For the best experience, especially with image handling and module loading, it is recommended to run the project using a local development server (like the "Live Server" extension in VS Code) rather than opening the file directly.
 
-## 🤝 Contributing
+##  Contributing
 
 Feel free to fork this project and submit pull requests. Suggestions and improvements are always welcome!
 
