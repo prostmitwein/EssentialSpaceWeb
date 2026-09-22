@@ -48,11 +48,10 @@ To run this project, you only need a modern web browser. No complex installation
 
 Feel free to fork this project and submit pull requests. Suggestions and improvements are always welcome!
 
-<img width="1643" height="1043" alt="2 0 7" src="https://github.com/user-attachments/assets/265c6ae3-4906-4400-b60e-546b787977de" />
-<img width="1643" height="1043" alt="2 0 6" src="https://github.com/user-attachments/assets/bcf60c21-11f2-461b-a6b1-048189c0fdd9" />
-<img width="1643" height="1043" alt="2 0 5" src="https://github.com/user-attachments/assets/abd6bd16-3b97-4ed6-bdf4-94d015dad9ba" />
-<img width="1643" height="1043" alt="2 0 4" src="https://github.com/user-attachments/assets/d1711faa-d1fd-4e60-8a65-c17eb28ab300" />
-<img width="1643" height="1043" alt="2 0 3" src="https://github.com/user-attachments/assets/ff331cb0-d2b3-4c10-a45b-38fd882eb677" />
-<img width="1643" height="1043" alt="2 0 2" src="https://github.com/user-attachments/assets/e5d460a6-865f-4981-87a5-02c6ff75fe1d" />
 <img width="1643" height="1043" alt="2 0 1" src="https://github.com/user-attachments/assets/cf4a2f06-2db1-4a99-b25f-5520669aa08c" />
-
+<img width="1643" height="1043" alt="2 0 2" src="https://github.com/user-attachments/assets/e5d460a6-865f-4981-87a5-02c6ff75fe1d" />
+<img width="1643" height="1043" alt="2 0 3" src="https://github.com/user-attachments/assets/ff331cb0-d2b3-4c10-a45b-38fd882eb677" />
+<img width="1643" height="1043" alt="2 0 4" src="https://github.com/user-attachments/assets/d1711faa-d1fd-4e60-8a65-c17eb28ab300" />
+<img width="1643" height="1043" alt="2 0 5" src="https://github.com/user-attachments/assets/abd6bd16-3b97-4ed6-bdf4-94d015dad9ba" />
+<img width="1643" height="1043" alt="2 0 6" src="https://github.com/user-attachments/assets/bcf60c21-11f2-461b-a6b1-048189c0fdd9" />
+<img width="1643" height="1043" alt="2 0 7" src="https://github.com/user-attachments/assets/265c6ae3-4906-4400-b60e-546b787977de" />
