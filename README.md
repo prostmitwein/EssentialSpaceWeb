@@ -48,11 +48,11 @@ To run this project, you only need a modern web browser. No complex installation
 
 Feel free to fork this project and submit pull requests. Suggestions and improvements are always welcome!
 
-<img width="1920" height="928" alt="1 2 8" src="https://github.com/user-attachments/assets/07278d31-636c-487b-92d3-512ef6a49e6c" />
-<img width="1920" height="928" alt="1 2 7" src="https://github.com/user-attachments/assets/1c720726-80a0-4404-b901-cfc962a3e1e7" />
-<img width="1920" height="928" alt="1 2 6" src="https://github.com/user-attachments/assets/4d9af0da-dcd4-40d1-8dcf-09971c7eccce" />
-<img width="1920" height="928" alt="1 2 5" src="https://github.com/user-attachments/assets/77f7f582-1930-4319-b69e-0726f1005156" />
-<img width="1920" height="928" alt="1 2 4" src="https://github.com/user-attachments/assets/3f01f431-0680-4931-a93e-0888aae25b6b" />
-<img width="1920" height="928" alt="1 2 3" src="https://github.com/user-attachments/assets/e2109733-2fd0-43dc-a7c6-68dffbb2a8c6" />
-<img width="1920" height="928" alt="1 2 2" src="https://github.com/user-attachments/assets/92b64c6e-0efc-42bb-b746-103ffa463e9d" />
-<img width="1920" height="928" alt="1 2 1" src="https://github.com/user-attachments/assets/3bd2ba28-a146-4f36-acc4-2b21cb0fa755" />
+<img width="1643" height="1043" alt="2 0 7" src="https://github.com/user-attachments/assets/265c6ae3-4906-4400-b60e-546b787977de" />
+<img width="1643" height="1043" alt="2 0 6" src="https://github.com/user-attachments/assets/bcf60c21-11f2-461b-a6b1-048189c0fdd9" />
+<img width="1643" height="1043" alt="2 0 5" src="https://github.com/user-attachments/assets/abd6bd16-3b97-4ed6-bdf4-94d015dad9ba" />
+<img width="1643" height="1043" alt="2 0 4" src="https://github.com/user-attachments/assets/d1711faa-d1fd-4e60-8a65-c17eb28ab300" />
+<img width="1643" height="1043" alt="2 0 3" src="https://github.com/user-attachments/assets/ff331cb0-d2b3-4c10-a45b-38fd882eb677" />
+<img width="1643" height="1043" alt="2 0 2" src="https://github.com/user-attachments/assets/e5d460a6-865f-4981-87a5-02c6ff75fe1d" />
+<img width="1643" height="1043" alt="2 0 1" src="https://github.com/user-attachments/assets/cf4a2f06-2db1-4a99-b25f-5520669aa08c" />
+
