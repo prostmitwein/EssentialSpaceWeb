@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadNotes();
         await updateWidgets();
         await updateFilterSidebar();
+        await refreshOverviewData();
     }
 
     // Load Notes
@@ -94,55 +95,107 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Update Widgets
     async function updateWidgets() {
         // Recent Widget
-        const recent = await db.getRecentMedia();
-        if (recent) {
-            recentPreview.style.backgroundImage = `url(${recent.imageData})`;
-            recentText.textContent = recent.content || 'Image Capture';
-            recentTime.textContent = new Date(recent.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        } else {
-            recentPreview.style.backgroundImage = 'none';
-            recentText.textContent = 'No recent media';
-            recentTime.textContent = '--:--';
+        if (recentPreview) {
+            const recent = await db.getRecentMedia();
+            if (recent) {
+                recentPreview.style.backgroundImage = `url(${recent.imageData})`;
+                if (recentText) recentText.textContent = recent.content || 'Image Capture';
+                if (recentTime) recentTime.textContent = new Date(recent.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else {
+                recentPreview.style.backgroundImage = 'none';
+                if (recentText) recentText.textContent = 'No recent media';
+                if (recentTime) recentTime.textContent = '--:--';
+            }
         }
 
         // Upcoming Widget
-        const upcoming = await db.getUpcomingEvents();
-        if (upcoming && upcoming.length > 0) {
-            const nextEvent = upcoming[0];
-            upcomingTitle.textContent = nextEvent.content;
-            upcomingDesc.textContent = new Date(nextEvent.eventDate).toLocaleDateString();
-            upcomingTime.textContent = new Date(nextEvent.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        } else {
-            upcomingTitle.textContent = 'No upcoming events';
-            upcomingDesc.textContent = '';
-            upcomingTime.textContent = '--:--';
+        if (upcomingTitle) {
+            const upcoming = await db.getUpcomingEvents();
+            if (upcoming && upcoming.length > 0) {
+                const nextEvent = upcoming[0];
+                upcomingTitle.textContent = nextEvent.content;
+                if (upcomingDesc) upcomingDesc.textContent = new Date(nextEvent.eventDate).toLocaleDateString();
+                if (upcomingTime) upcomingTime.textContent = new Date(nextEvent.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else {
+                upcomingTitle.textContent = 'No upcoming events';
+                if (upcomingDesc) upcomingDesc.textContent = '';
+                if (upcomingTime) upcomingTime.textContent = '--:--';
+            }
         }
+    }
+
+    function getTagsFromNote(n) {
+        const set = new Set();
+        if (n.tags) {
+            let list = [];
+            if (Array.isArray(n.tags)) {
+                list = n.tags;
+            } else if (typeof n.tags === 'string') {
+                try {
+                    const parsed = JSON.parse(n.tags);
+                    if (Array.isArray(parsed)) list = parsed;
+                    else list = n.tags.split(/[,#\s]+/);
+                } catch (e) {
+                    list = n.tags.split(/[,#\s]+/);
+                }
+            }
+            list.forEach(t => {
+                if (t) {
+                    const clean = String(t).trim().toLowerCase().replace(/^\[|\]$/g, '').replace(/^#/, '');
+                    if (clean) set.add(clean);
+                }
+            });
+        }
+        const textToScan = ((n.content || '') + ' ' + (n.transcript || '') + ' ' + (n.title || '')).toLowerCase();
+        const matches = textToScan.match(/#([a-zA-Z0-9_\-\u00C0-\u024F]+)/g);
+        if (matches) {
+            matches.forEach(m => {
+                const clean = m.replace(/^#/, '').trim().toLowerCase();
+                if (clean) set.add(clean);
+            });
+        }
+        return Array.from(set);
     }
 
     // Update Filter Sidebar
     async function updateFilterSidebar() {
-        const tags = await db.getUniqueTags();
-        tagFilterList.innerHTML = `<li class="${currentFilter === null ? 'active' : ''}" data-tag="all">ALL</li>`;
+        if (!tagFilterList) return;
+        const allNotes = await db.getAllNotes();
+        const tagCounts = {};
+        allNotes.forEach(n => {
+            const tags = getTagsFromNote(n);
+            tags.forEach(clean => {
+                tagCounts[clean] = (tagCounts[clean] || 0) + 1;
+            });
+        });
 
-        tags.forEach(tag => {
+        const activeTag = currentFilter ? currentFilter.toLowerCase().replace(/^#/, '') : null;
+        tagFilterList.innerHTML = `<li class="${activeTag === null ? 'active' : ''}" data-tag="all">ALL (${allNotes.length})</li>`;
+
+        Object.keys(tagCounts).sort().forEach(tag => {
             const li = document.createElement('li');
-            li.textContent = tag;
+            li.textContent = `${tag.toUpperCase()} (${tagCounts[tag]})`;
             li.dataset.tag = tag;
-            if (currentFilter === tag) li.classList.add('active');
+            if (activeTag === tag) li.classList.add('active');
 
             li.onclick = () => {
                 currentFilter = tag;
+                const collectionsBtn = document.getElementById('pillCollectionsBtn');
+                if (collectionsBtn) collectionsBtn.click();
                 refreshAll();
                 closeMobileMenu();
             };
             tagFilterList.appendChild(li);
         });
 
-        tagFilterList.querySelector('[data-tag="all"]').onclick = () => {
-            currentFilter = null;
-            refreshAll();
-            closeMobileMenu();
-        };
+        const allBtn = tagFilterList.querySelector('[data-tag="all"]');
+        if (allBtn) {
+            allBtn.onclick = () => {
+                currentFilter = null;
+                refreshAll();
+                closeMobileMenu();
+            };
+        }
     }
 
     // Mobile Menu Logic
@@ -182,60 +235,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         items.forEach((item, index) => {
             const itemEl = document.createElement('div');
-            // Pseudo-random hash for organic randomized layout (span 1 rect vs span 2 square)
-            const seed = (typeof item.id === 'number' ? item.id * 31 : index * 47) + (item.timestamp ? item.timestamp.length : 0);
+            const seed = (typeof item.id === 'number' ? item.id * 31 : index * 47) + (item.timestamp ? String(item.timestamp).length : 0);
             const isSquare = ((seed * 19 + 7) % 5) < 2;
             const shapeClass = isSquare ? 'shape-square' : 'shape-rect';
 
-            itemEl.className = `memory-item ${item.isPinned ? 'pinned' : ''} ${shapeClass}`;
             itemEl.onclick = () => openViewModal(item);
 
-            // Format time relative
             const timeString = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const pinHtml = item.isPinned ? '<div class="pinned-badge">PINNED</div>' : '';
+            const typeBadge = formatType(item.type) || 'NOTE';
 
-            let previewHtml = '';
+            let tagsHtml = '';
+            if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
+                tagsHtml = `<div class="item-tags">${item.tags.map(t => `<span class="item-tag">#${t.replace(/^#/, '')}</span>`).join('')}</div>`;
+            }
+
             if (item.imageData) {
-                previewHtml = `<img src="${item.imageData}" class="item-image-preview">`;
-            }
-
-            let pinHtml = item.isPinned ? '<div class="pinned-badge">PINNED</div>' : '';
-
-            // Build content HTML - always show visible text on cards
-            let contentHtml = '';
-            if (item.content) {
-                contentHtml = `<span class="item-content">${item.content}</span>`;
-            } else if (item.transcript) {
-                contentHtml = `<span class="item-content">${item.transcript}</span>`;
-            } else if (item.imageData) {
-                contentHtml = `<span class="item-content">Image Attachment</span>`;
+                itemEl.className = `memory-item photo-card ${item.isPinned ? 'pinned' : ''} ${shapeClass}`;
+                itemEl.style.backgroundImage = `url(${item.imageData})`;
+                itemEl.innerHTML = `
+                    ${pinHtml}
+                    <div class="card-overlay"></div>
+                    <div class="card-content-wrap">
+                        <div class="item-header-row">
+                            <span class="item-type">${typeBadge}</span>
+                            ${tagsHtml}
+                        </div>
+                        <span class="item-content">${item.content || item.transcript || ''}</span>
+                        <span class="item-time">${timeString}</span>
+                    </div>
+                `;
             } else {
-                contentHtml = `<span class="item-content">Empty</span>`;
-            }
-
-            // Build voice player HTML
-            let voiceHtml = '';
-            if (item.type === '[VOICE]' && item.audioBlob) {
-                voiceHtml = `
-                    <div class="audio-player-custom">
-                        <button class="audio-play-btn" onclick="event.stopPropagation(); const audio = this.nextElementSibling; audio.paused ? audio.play() : audio.pause();">▶</button>
-                        <audio src="${URL.createObjectURL(item.audioBlob)}" onended="this.previousElementSibling.textContent='▶'" onplay="this.previousElementSibling.textContent='⏸'" onpause="this.previousElementSibling.textContent='▶'"></audio>
-                        <div class="audio-wave"></div>
-                    </div>`;
-                if (item.transcript) {
-                    voiceHtml += `<div class="transcript-text visible">${item.transcript}</div>`;
+                itemEl.className = `memory-item ${item.isPinned ? 'pinned' : ''} ${shapeClass}`;
+                let voiceHtml = '';
+                if (item.type === '[VOICE]' && item.audioBlob) {
+                    voiceHtml = `
+                        <div class="audio-player-custom">
+                            <button class="audio-play-btn" onclick="event.stopPropagation(); const audio = this.nextElementSibling; audio.paused ? audio.play() : audio.pause();">▶</button>
+                            <audio src="${URL.createObjectURL(item.audioBlob)}" onended="this.previousElementSibling.textContent='▶'" onplay="this.previousElementSibling.textContent='⏸'" onpause="this.previousElementSibling.textContent='▶'"></audio>
+                            <div class="audio-wave"></div>
+                        </div>`;
                 }
-            }
 
-            itemEl.innerHTML = `
-                ${pinHtml}
-                ${previewHtml}
-                <div class="item-left">
-                    <span class="item-type">${formatType(item.type)}</span>
-                    ${voiceHtml}
-                    ${contentHtml}
-                </div>
-                <span class="item-time">${timeString}</span>
-            `;
+                let bodyText = item.content || item.transcript || '';
+                if (item.type === '[TASK]' && bodyText) {
+                    bodyText = `◯ ${bodyText}`;
+                }
+
+                itemEl.innerHTML = `
+                    ${pinHtml}
+                    <div class="item-header-row">
+                        <span class="item-type">${typeBadge}</span>
+                        ${tagsHtml}
+                    </div>
+                    <div class="item-body-content">
+                        ${voiceHtml}
+                        <span class="item-content">${bodyText}</span>
+                    </div>
+                    <span class="item-time">${timeString}</span>
+                `;
+            }
 
             memoryList.appendChild(itemEl);
         });
@@ -432,13 +491,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     noteType.addEventListener('change', () => {
         imageUploadGroup.style.display = 'none';
         eventFields.style.display = 'none';
+        const vr = document.getElementById('voiceRecorder');
+        if (vr) vr.style.display = 'none';
 
         if (noteType.value === '[PHOTO]') {
             imageUploadGroup.style.display = 'block';
         } else if (noteType.value === '[EVENT]') {
             eventFields.style.display = 'block';
         } else if (noteType.value === '[VOICE]') {
-            document.getElementById('voiceRecorder').style.display = 'block';
+            if (vr) vr.style.display = 'block';
         }
     });
 
@@ -447,6 +508,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         const content = noteContent.value;
         let imageData = null;
         let eDate = null;
+
+        if (addTagInput && addTagInput.value.trim()) {
+            const typed = addTagInput.value.split(/[,#\s]+/).map(t => t.trim().toLowerCase().replace(/^\[|\]$/g, '')).filter(t => t);
+            typed.forEach(t => {
+                if (!currentAddTags.includes(t)) currentAddTags.push(t);
+            });
+            addTagInput.value = '';
+        }
+
+        // Auto-extract hashtags from content text
+        if (content) {
+            const matches = content.match(/#([a-zA-Z0-9_\-]+)/g);
+            if (matches) {
+                matches.forEach(m => {
+                    const tag = m.replace(/^#/, '').toLowerCase();
+                    if (!currentAddTags.includes(tag)) currentAddTags.push(tag);
+                });
+            }
+        }
 
         if (type === '[PHOTO]' && noteImage.files.length > 0) {
             imageData = await convertToBase64(noteImage.files[0]);
@@ -487,7 +567,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         await db.addNote(newNote);
         addModal.classList.remove('active');
-        refreshAll();
+        await refreshAll();
     });
 
     // View Modal Logic
@@ -663,12 +743,215 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchInput = document.getElementById('searchInput');
     const closeSearchBtn = document.getElementById('closeSearchBtn');
 
+    // --- Local LLM & Overview Generator ---
+    let localSummarizer = null;
+
+    async function loadLocalLLM(onProgress) {
+        if (localSummarizer) return localSummarizer;
+        env.allowLocalModels = false;
+        localSummarizer = await pipeline('summarization', 'Xenova/t5-small', {
+            progress_callback: (p) => {
+                if (p.status === 'progress' && onProgress) {
+                    onProgress(Math.round(p.progress));
+                }
+            }
+        });
+        localStorage.setItem('local_llm_installed', 'true');
+        return localSummarizer;
+    }
+
+    async function runLocalAISummary() {
+        const notes = await db.getAllNotes();
+        const summaryCard = document.getElementById('desktopAiSummaryCard');
+        const summaryBody = document.getElementById('desktopAiSummaryBody');
+        const summaryTime = document.getElementById('desktopSummaryTime');
+        if (!summaryCard || !summaryBody) return;
+
+        summaryCard.style.display = 'block';
+        if (summaryTime) summaryTime.textContent = new Date().toLocaleTimeString();
+        summaryBody.innerHTML = `<div style="display:flex; align-items:center; gap:10px; color:var(--text-muted); font-style:italic;"><span>Local LLM model is generating high-level summary on-device...</span></div>`;
+
+        const events = notes.filter(n => n.type === '[EVENT]');
+        const tasks = notes.filter(n => n.type === '[TASK]');
+        const captures = notes.filter(n => n.type !== '[EVENT]' && n.type !== '[TASK]');
+
+        let textPrompt = notes.map(n => n.content || n.transcript || '').filter(t => t).join(' . ');
+        if (!textPrompt) {
+            textPrompt = "Workspace contains upcoming events and notes.";
+        }
+        if (textPrompt.length > 500) textPrompt = textPrompt.substring(0, 500);
+
+        let generatedText = "";
+        try {
+            const summarizer = await loadLocalLLM();
+            const res = await summarizer(textPrompt, { max_new_tokens: 60, min_new_tokens: 15 });
+            if (res && res[0] && res[0].summary_text) {
+                generatedText = res[0].summary_text;
+            }
+        } catch (err) {
+            console.warn("Local AI summary fallback:", err);
+        }
+
+        if (!generatedText) {
+            generatedText = `Your workspace has ${events.length} upcoming event(s) and ${tasks.length} pending task(s). Recent focus is on captured notes and voice recordings.`;
+        }
+
+        summaryBody.innerHTML = `
+            <p style="margin:0; line-height:1.6; font-size:14px;"><strong>High-Level Overview:</strong> ${generatedText}</p>
+        `;
+    }
+
+    async function refreshOverviewData() {
+        const notes = await db.getAllNotes();
+        const todayStr = new Date().toDateString();
+
+        const events = notes.filter(n => n.type === '[EVENT]');
+        const tasks = notes.filter(n => n.type === '[TASK]');
+        const captures = notes.filter(n => n.type !== '[EVENT]' && n.type !== '[TASK]');
+
+        const todayEvents = events.filter(e => e.eventDate && new Date(e.eventDate).toDateString() === todayStr);
+
+        const heroEventCount = document.getElementById('heroEventCount');
+        const heroTaskCount = document.getElementById('heroTaskCount');
+        const desktopHeroSubtitle = document.getElementById('desktopHeroSubtitle');
+
+        if (heroEventCount) heroEventCount.textContent = `${todayEvents.length || events.length} events`;
+        if (heroTaskCount) heroTaskCount.textContent = `${tasks.length} tasks`;
+        if (desktopHeroSubtitle) desktopHeroSubtitle.textContent = `Captured ${notes.length} total memories in workspace`;
+
+        const desktopEventsList = document.getElementById('desktopEventsList');
+        if (desktopEventsList) {
+            desktopEventsList.innerHTML = '';
+            if (events.length === 0) {
+                desktopEventsList.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">No upcoming events</p>`;
+            } else {
+                events.slice(0, 4).forEach(e => {
+                    const item = document.createElement('div');
+                    item.className = 'list-card';
+                    item.style.cursor = 'pointer';
+                    item.onclick = () => openViewModal(e);
+                    item.innerHTML = `
+                        <strong>${e.content || 'Untitled Event'}</strong>
+                        <span style="font-size:0.8rem; color:var(--text-muted); display:block; margin-top:4px;">${e.eventDate ? new Date(e.eventDate).toLocaleString() : 'No date set'}</span>
+                    `;
+                    desktopEventsList.appendChild(item);
+                });
+            }
+        }
+
+        const desktopTasksList = document.getElementById('desktopTasksList');
+        if (desktopTasksList) {
+            desktopTasksList.innerHTML = '';
+            if (tasks.length === 0) {
+                desktopTasksList.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">No pending tasks</p>`;
+            } else {
+                tasks.slice(0, 5).forEach(t => {
+                    const item = document.createElement('div');
+                    item.className = 'task-pill-row';
+                    item.onclick = () => openViewModal(t);
+                    item.innerHTML = `
+                        <div class="task-check-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"></circle></svg>
+                        </div>
+                        <span class="task-text">${t.content || 'Untitled Task'}</span>
+                    `;
+                    desktopTasksList.appendChild(item);
+                });
+            }
+        }
+
+        const desktopCapturesList = document.getElementById('desktopCapturesList');
+        if (desktopCapturesList) {
+            desktopCapturesList.innerHTML = '';
+            if (captures.length === 0) {
+                desktopCapturesList.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">No recent captures</p>`;
+            } else {
+                captures.slice(0, 3).forEach(c => {
+                    const card = document.createElement('div');
+                    card.onclick = () => openViewModal(c);
+                    const typeText = (c.type || 'NOTE').replace(/^\[|\]$/g, '');
+                    const timeStr = new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    if (c.imageData) {
+                        card.className = 'capture-card photo-capture';
+                        card.style.backgroundImage = `url(${c.imageData})`;
+                        card.innerHTML = `
+                            <div class="card-overlay"></div>
+                            <div class="capture-inner">
+                                <span class="capture-type">${typeText}</span>
+                                <span class="capture-title">${c.content || c.transcript || 'Photo Capture'}</span>
+                                <span class="capture-time">${timeStr}</span>
+                            </div>
+                        `;
+                    } else {
+                        card.className = 'capture-card text-capture';
+                        card.innerHTML = `
+                            <div class="capture-inner">
+                                <span class="capture-type">${typeText}</span>
+                                <span class="capture-title">${c.content || c.transcript || 'Note Capture'}</span>
+                                <span class="capture-time">${timeStr}</span>
+                            </div>
+                        `;
+                    }
+                    desktopCapturesList.appendChild(card);
+                });
+            }
+        }
+    }
+
+    // Modal Install Event Listeners
+    const modelInstallModal = document.getElementById('modelInstallModal');
+    const startModelInstallBtn = document.getElementById('startModelInstallBtn');
+    const cancelModelInstallBtn = document.getElementById('cancelModelInstallBtn');
+    const closeModelInstallModal = document.getElementById('closeModelInstallModal');
+    const desktopGenerateOverviewBtn = document.getElementById('desktopGenerateOverviewBtn');
+    const downloadProgressContainer = document.getElementById('downloadProgressContainer');
+    const downloadProgressBar = document.getElementById('downloadProgressBar');
+    const downloadProgressText = document.getElementById('downloadProgressText');
+
+    function openModelModal() { if (modelInstallModal) modelInstallModal.classList.add('active'); }
+    function closeModelModal() { if (modelInstallModal) modelInstallModal.classList.remove('active'); }
+
+    if (closeModelInstallModal) closeModelInstallModal.addEventListener('click', closeModelModal);
+    if (cancelModelInstallBtn) cancelModelInstallBtn.addEventListener('click', closeModelModal);
+
+    if (desktopGenerateOverviewBtn) {
+        desktopGenerateOverviewBtn.addEventListener('click', () => {
+            const isInstalled = localStorage.getItem('local_llm_installed') === 'true';
+            if (!isInstalled && !localSummarizer) {
+                openModelModal();
+            } else {
+                runLocalAISummary();
+            }
+        });
+    }
+
+    if (startModelInstallBtn) {
+        startModelInstallBtn.addEventListener('click', async () => {
+            startModelInstallBtn.disabled = true;
+            if (downloadProgressContainer) downloadProgressContainer.style.display = 'block';
+            try {
+                await loadLocalLLM((percent) => {
+                    if (downloadProgressBar) downloadProgressBar.style.width = `${percent}%`;
+                    if (downloadProgressText) downloadProgressText.textContent = `Downloading local AI model weights... ${percent}%`;
+                });
+                closeModelModal();
+                runLocalAISummary();
+            } catch (err) {
+                console.error("Model download failed:", err);
+                if (downloadProgressText) downloadProgressText.textContent = `Download failed. Please check network.`;
+                startModelInstallBtn.disabled = false;
+            }
+        });
+    }
+
     if (pillOverviewBtn && pillCollectionsBtn) {
         pillOverviewBtn.addEventListener('click', () => {
             pillOverviewBtn.classList.add('active');
             pillCollectionsBtn.classList.remove('active');
-            overviewSection.style.display = 'grid';
+            overviewSection.style.display = 'flex';
             collectionsSection.style.display = 'none';
+            refreshOverviewData();
         });
 
         pillCollectionsBtn.addEventListener('click', () => {
@@ -679,52 +962,125 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    const desktopSearchResults = document.getElementById('desktopSearchResults');
+
+    function closeDesktopSearch() {
+        if (searchOverlay) searchOverlay.classList.remove('active');
+        if (searchInput) searchInput.value = '';
+        if (desktopSearchResults) desktopSearchResults.innerHTML = '';
+        currentFilter = null;
+        updateFilterSidebar();
+        loadNotes();
+    }
+
     if (pillSearchBtn) {
-        pillSearchBtn.addEventListener('click', () => {
-            searchOverlay.classList.add('active');
-            searchInput.focus();
+        pillSearchBtn.addEventListener('click', async () => {
+            if (searchOverlay) searchOverlay.classList.add('active');
+            if (searchInput) {
+                searchInput.value = '';
+                setTimeout(() => searchInput.focus(), 100);
+            }
+            const allNotes = await db.getAllNotes();
+            renderSearchResults(allNotes);
         });
     }
 
     if (closeSearchBtn) {
-        closeSearchBtn.addEventListener('click', () => {
-            searchOverlay.classList.remove('active');
-            searchInput.value = '';
-            // Reset search filter
-            currentFilter = 'all';
-            document.querySelectorAll('#tagFilterList li').forEach(li => li.classList.remove('active'));
-            document.querySelector('#tagFilterList li[data-tag="all"]').classList.add('active');
-            loadNotes();
+        closeSearchBtn.addEventListener('click', closeDesktopSearch);
+    }
+
+    if (searchOverlay) {
+        searchOverlay.addEventListener('click', (e) => {
+            if (e.target === searchOverlay) {
+                closeDesktopSearch();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchOverlay && searchOverlay.classList.contains('active')) {
+            closeDesktopSearch();
+        }
+    });
+
+    function renderSearchResults(items) {
+        if (!desktopSearchResults) return;
+        desktopSearchResults.innerHTML = '';
+        if (!items || items.length === 0) {
+            desktopSearchResults.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding:30px; font-family:var(--font-body); grid-column: 1 / -1;">No matching memories found</div>`;
+            return;
+        }
+        items.forEach((item, index) => {
+            const itemEl = document.createElement('div');
+            const seed = (typeof item.id === 'number' ? item.id * 31 : index * 47) + (item.timestamp ? String(item.timestamp).length : 0);
+            const isSquare = ((seed * 19 + 7) % 5) < 2;
+            const shapeClass = isSquare ? 'shape-square' : 'shape-rect';
+
+            itemEl.onclick = () => {
+                openViewModal(item);
+            };
+
+            const timeString = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const typeBadge = formatType(item.type) || 'NOTE';
+
+            let tagsHtml = '';
+            if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
+                tagsHtml = `<div class="item-tags">${item.tags.map(t => `<span class="item-tag">#${t.replace(/^#/, '')}</span>`).join('')}</div>`;
+            }
+
+            if (item.imageData) {
+                itemEl.className = `memory-item photo-card ${shapeClass}`;
+                itemEl.style.backgroundImage = `url(${item.imageData})`;
+                itemEl.innerHTML = `
+                    <div class="card-overlay"></div>
+                    <div class="card-content-wrap">
+                        <div class="item-header-row">
+                            <span class="item-type">${typeBadge}</span>
+                            ${tagsHtml}
+                        </div>
+                        <span class="item-content">${item.content || item.transcript || ''}</span>
+                        <span class="item-time">${timeString}</span>
+                    </div>
+                `;
+            } else {
+                itemEl.className = `memory-item ${shapeClass}`;
+                let bodyText = item.content || item.transcript || '';
+                if (item.type === '[TASK]' && bodyText) bodyText = `◯ ${bodyText}`;
+
+                itemEl.innerHTML = `
+                    <div class="item-header-row">
+                        <span class="item-type">${typeBadge}</span>
+                        ${tagsHtml}
+                    </div>
+                    <div class="item-body-content">
+                        <span class="item-content">${bodyText}</span>
+                    </div>
+                    <span class="item-time">${timeString}</span>
+                `;
+            }
+            desktopSearchResults.appendChild(itemEl);
         });
     }
 
     if (searchInput) {
         searchInput.addEventListener('input', async (e) => {
-            const query = e.target.value.toLowerCase();
-            const notes = await db.getAllNotes(currentFilter);
+            const query = e.target.value.toLowerCase().trim();
+            const notes = await db.getAllNotes();
             if (!query) {
+                renderSearchResults(notes);
                 renderItems(notes);
                 return;
             }
             const filtered = notes.filter(note => {
-                return (note.content && note.content.toLowerCase().includes(query)) ||
-                       (note.type && note.type.toLowerCase().includes(query)) ||
-                       (note.transcript && note.transcript.toLowerCase().includes(query));
+                const contentMatch = note.content && note.content.toLowerCase().includes(query);
+                const typeMatch = note.type && note.type.toLowerCase().includes(query);
+                const transcriptMatch = note.transcript && note.transcript.toLowerCase().includes(query);
+                const tagMatch = note.tags && Array.isArray(note.tags) && note.tags.some(t => t.toLowerCase().includes(query));
+                return contentMatch || typeMatch || transcriptMatch || tagMatch;
             });
-            
-            // Auto switch to collections view to show results if not already there
-            if (pillCollectionsBtn && !pillCollectionsBtn.classList.contains('active')) {
-                pillCollectionsBtn.click();
-            }
-            searchOverlay.classList.remove('active'); // optionally keep open or close
+
+            renderSearchResults(filtered);
             renderItems(filtered);
-        });
-        
-        // Let's close overlay on Enter
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchOverlay.classList.remove('active');
-            }
         });
     }
 

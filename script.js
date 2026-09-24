@@ -412,13 +412,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     noteType.addEventListener('change', () => {
         imageUploadGroup.style.display = 'none';
         eventFields.style.display = 'none';
+        const vr = document.getElementById('voiceRecorder');
+        if (vr) vr.style.display = 'none';
 
         if (noteType.value === '[PHOTO]') {
             imageUploadGroup.style.display = 'block';
         } else if (noteType.value === '[EVENT]') {
             eventFields.style.display = 'block';
         } else if (noteType.value === '[VOICE]') {
-            document.getElementById('voiceRecorder').style.display = 'block';
+            if (vr) vr.style.display = 'block';
         }
     });
 

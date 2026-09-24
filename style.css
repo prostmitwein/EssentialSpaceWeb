@@ -783,22 +783,24 @@ input[type="file"] {
     align-items: center;
 }
 
-.btn-primary {
+.btn-primary, #saveNoteBtn {
     background-color: var(--accent-color);
-    color: #FFFFFF;
+    color: #000000 !important;
+    font-weight: 700;
     border: none;
-    padding: 12px 26px;
-    border-radius: 16px;
+    padding: 12px 28px;
+    border-radius: 9999px;
     cursor: pointer;
     font-family: var(--font-ntype);
     font-size: 13px;
     letter-spacing: 1px;
+    box-shadow: none !important;
     transition: all 0.25s var(--m3-easing);
 }
 
-.btn-primary:hover {
-    filter: brightness(1.1);
-    box-shadow: 0 4px 16px rgba(255, 46, 46, 0.4);
+.btn-primary:hover, #saveNoteBtn:hover {
+    filter: brightness(1.05);
+    box-shadow: none !important;
 }
 
 .btn-secondary {

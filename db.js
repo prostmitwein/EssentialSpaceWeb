@@ -77,8 +77,15 @@ class StorageService {
             request.onsuccess = (event) => {
                 let notes = event.target.result;
 
-                if (filterTag) {
-                    notes = notes.filter(note => note.tags && note.tags.includes(filterTag));
+                if (filterTag && filterTag !== 'all') {
+                    const targetTag = filterTag.trim().toLowerCase().replace(/^#/, '');
+                    notes = notes.filter(note => {
+                        const hasTagInArray = note.tags && Array.isArray(note.tags) && 
+                            note.tags.some(t => String(t).trim().toLowerCase().replace(/^\[|\]$/g, '').replace(/^#/, '') === targetTag);
+                        const textContent = ((note.content || '') + ' ' + (note.transcript || '')).toLowerCase();
+                        const hasHashtagInText = textContent.includes('#' + targetTag);
+                        return hasTagInArray || hasHashtagInText;
+                    });
                 }
 
                 notes.sort((a, b) => {

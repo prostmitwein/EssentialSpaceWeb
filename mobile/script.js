@@ -2,101 +2,374 @@ import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers
 
 env.allowLocalModels = false;
 
-let db;
-let transcriber = null;
-let activeTab = 'tab-overview';
-let currentNoteType = '[NOTE]';
+document.addEventListener('DOMContentLoaded', async () => {
+  let currentFilter = null;
+  let currentNoteType = '[NOTE]';
+  let recordedAudioBlob = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
 
-// DOM Elements
-const clockEl = document.getElementById('clock');
-const navBtns = document.querySelectorAll('.nav-item[data-target]');
-const searchBtn = document.getElementById('nav-search-btn');
-const tabPanes = document.querySelectorAll('.tab-pane');
-const searchOverlay = document.getElementById('search-overlay');
-const closeSearchBtn = document.getElementById('closeSearchBtn');
-const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
+  // Elements
+  const clockEl = document.getElementById('clock');
+  const overviewHeroText = document.getElementById('overview-hero-text');
+  const heroEventCount = document.getElementById('heroEventCount');
+  const heroTaskCount = document.getElementById('heroTaskCount');
+  const mobileHeroSubtitle = document.getElementById('mobileHeroSubtitle');
+  const mobileGenerateOverviewBtn = document.getElementById('mobileGenerateOverviewBtn');
+  
+  const tabOverview = document.getElementById('tab-overview');
+  const tabCollections = document.getElementById('tab-collections');
+  
+  const mobilePillOverviewBtn = document.getElementById('mobilePillOverviewBtn');
+  const mobilePillCollectionsBtn = document.getElementById('mobilePillCollectionsBtn');
+  const mobilePillSettingsBtn = document.getElementById('mobilePillSettingsBtn');
+  const mobilePillAddBtn = document.getElementById('mobilePillAddBtn');
+  const mobilePillSearchBtn = document.getElementById('mobilePillSearchBtn');
+  const mobileSettingsMenu = document.getElementById('mobileSettingsMenu');
+  
+  const collectionsGrid = document.getElementById('collections-grid');
+  const collectionsCount = document.getElementById('collectionsCount');
+  const mobileTagFilters = document.getElementById('mobileTagFilters');
 
-const fabAdd = document.getElementById('fab-add');
-const addModal = document.getElementById('add-modal');
-const closeAddBtns = addModal.querySelectorAll('.close-sheet');
-const viewModal = document.getElementById('view-modal');
-const closeViewBtns = viewModal.querySelectorAll('.close-sheet');
-const settingsModal = document.getElementById('settings-modal');
+  const addModal = document.getElementById('add-modal');
+  const viewModal = document.getElementById('view-modal');
+  const searchOverlay = document.getElementById('search-overlay');
+  const searchInput = document.getElementById('searchInput');
+  const searchResults = document.getElementById('searchResults');
+  const closeSearchBtn = document.getElementById('closeSearchBtn');
+  const saveNoteBtn = document.getElementById('saveNoteBtn');
+  
+  const addContent = document.getElementById('addContent');
+  const addTags = document.getElementById('addTags');
+  const addEventDate = document.getElementById('addEventDate');
+  const addPhotoInput = document.getElementById('addPhotoInput');
+  const recordBtn = document.getElementById('recordBtn');
+  const recordingStatus = document.getElementById('recordingStatus');
 
-// Init
-async function init() {
-  db = window.db;
-  if (!db) {
-    db = new StorageService();
-    window.db = db;
+  // Clock
+  function updateClock() {
+    if (clockEl) {
+      const now = new Date();
+      clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
   }
-  await db.init();
-
+  setInterval(updateClock, 1000);
   updateClock();
-  setInterval(updateClock, 60000);
-  
-  setupListeners();
-  loadData();
-  
-  // Preload transcriber
+
+  // Initialize DB
   try {
-    transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
-  } catch (e) {
-    console.error('Failed to load transcriber', e);
+    await db.init();
+    await refreshAll();
+  } catch (err) {
+    console.error("Mobile DB init error:", err);
   }
-}
 
-function updateClock() {
-  const now = new Date();
-  clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
+  async function refreshAll() {
+    await loadCollections();
+    await updateOverviewData();
+    await updateTagFilters();
+  }
 
-function setupListeners() {
-  // Navigation
-  navBtns.forEach(btn => {
+  // --- Tab Switching ---
+  if (mobilePillOverviewBtn && mobilePillCollectionsBtn) {
+    mobilePillOverviewBtn.addEventListener('click', () => {
+      mobilePillOverviewBtn.classList.add('active');
+      mobilePillCollectionsBtn.classList.remove('active');
+      tabOverview.classList.add('active');
+      tabCollections.classList.remove('active');
+      if (mobileSettingsMenu) mobileSettingsMenu.classList.remove('active');
+    });
+
+    mobilePillCollectionsBtn.addEventListener('click', () => {
+      mobilePillCollectionsBtn.classList.add('active');
+      mobilePillOverviewBtn.classList.remove('active');
+      tabCollections.classList.add('active');
+      tabOverview.classList.remove('active');
+      if (mobileSettingsMenu) mobileSettingsMenu.classList.remove('active');
+    });
+  }
+
+  // Settings Menu Toggle
+  if (mobilePillSettingsBtn && mobileSettingsMenu) {
+    mobilePillSettingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mobileSettingsMenu.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+      if (!mobileSettingsMenu.contains(e.target) && e.target !== mobilePillSettingsBtn) {
+        mobileSettingsMenu.classList.remove('active');
+      }
+    });
+  }
+
+  // Desktop Switch
+  const mobileSwitchToDesktopBtn = document.getElementById('mobileSwitchToDesktopBtn');
+  if (mobileSwitchToDesktopBtn) {
+    mobileSwitchToDesktopBtn.addEventListener('click', () => {
+      localStorage.setItem('preferred_ui', 'desktop');
+      window.location.replace('../desktop/index.html');
+    });
+  }
+
+  // Theme Toggle
+  document.querySelectorAll('[data-setting="theme"]').forEach(btn => {
     btn.addEventListener('click', () => {
-      navBtns.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('[data-setting="theme"]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const targetId = btn.getAttribute('data-target');
-      tabPanes.forEach(pane => {
-        if(pane.id === targetId) pane.classList.add('active');
-        else pane.classList.remove('active');
-      });
-      activeTab = targetId;
+      const val = btn.getAttribute('data-value');
+      document.documentElement.setAttribute('data-theme', val);
     });
   });
 
-  // Search
-  searchBtn.addEventListener('click', () => {
-    searchOverlay.classList.add('active');
-    searchInput.focus();
-    renderSearch();
-  });
-  closeSearchBtn.addEventListener('click', () => {
-    searchOverlay.classList.remove('active');
-    searchInput.value = '';
-  });
-  searchInput.addEventListener('input', renderSearch);
+  // --- Overview Dashboard ---
+  async function updateOverviewData() {
+    const notes = await db.getAllNotes();
+    const todayStr = new Date().toDateString();
 
-  // Modals
-  fabAdd.addEventListener('click', () => {
-    addModal.classList.add('active');
-    document.getElementById('addContent').value = '';
-    document.getElementById('addTags').value = '';
-    document.getElementById('addEventDate').value = '';
-    document.getElementById('addPhotoInput').value = '';
-    currentNoteType = '[NOTE]';
-    updateTypeUI();
-  });
+    const events = notes.filter(n => n.type === '[EVENT]');
+    const tasks = notes.filter(n => n.type === '[TASK]');
+    const captures = notes.filter(n => n.type !== '[EVENT]' && n.type !== '[TASK]');
+
+    const todayEvents = events.filter(e => e.eventDate && new Date(e.eventDate).toDateString() === todayStr);
+
+    if (heroEventCount) heroEventCount.textContent = `${todayEvents.length} events`;
+    if (heroTaskCount) heroTaskCount.textContent = `${tasks.length} tasks`;
+    if (mobileHeroSubtitle) mobileHeroSubtitle.textContent = `Captured ${notes.length} memories overall`;
+
+    // Render Events List
+    const eventsList = document.getElementById('overview-events-list');
+    if (eventsList) {
+      if (events.length === 0) {
+        eventsList.innerHTML = `<div class="empty-state-text">No upcoming events</div>`;
+      } else {
+        eventsList.innerHTML = events.slice(0, 4).map(e => `
+          <div class="overview-event-item">
+            <span class="event-title">${escapeHtml(e.content || 'Event')}</span>
+            <span class="event-time">${e.eventDate ? new Date(e.eventDate).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '--'}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Render Tasks List
+    const tasksList = document.getElementById('overview-tasks-list');
+    if (tasksList) {
+      if (tasks.length === 0) {
+        tasksList.innerHTML = `<div class="empty-state-text">No pending tasks</div>`;
+      } else {
+        tasksList.innerHTML = tasks.slice(0, 4).map(t => `
+          <div class="overview-task-item ${t.isCompleted ? 'completed' : ''}">
+            <input type="checkbox" ${t.isCompleted ? 'checked' : ''} data-id="${t.id}" class="task-checkbox">
+            <span>${escapeHtml(t.content || 'Task')}</span>
+          </div>
+        `).join('');
+
+        tasksList.querySelectorAll('.task-checkbox').forEach(cb => {
+          cb.addEventListener('change', async (e) => {
+            const id = Number(e.target.dataset.id);
+            const targetNote = notes.find(n => n.id === id);
+            if (targetNote) {
+              targetNote.isCompleted = e.target.checked;
+              await db.updateNote(targetNote);
+              await refreshAll();
+            }
+          });
+        });
+      }
+    }
+
+    // Render Recent Captures Grid
+    const capturesList = document.getElementById('overview-captures-list');
+    if (capturesList) {
+      const recentCaptures = captures.slice(0, 4);
+      if (recentCaptures.length === 0) {
+        capturesList.innerHTML = `<div class="empty-state-text" style="grid-column: span 2;">No recent captures</div>`;
+      } else {
+        capturesList.innerHTML = recentCaptures.map(c => renderCardHtml(c)).join('');
+        attachCardClickHandlers(capturesList);
+      }
+    }
+  }
+
+  // --- Local AI Summary Generator ---
+  let localSummarizer = null;
+  async function runMobileLocalAISummary() {
+    const notes = await db.getAllNotes();
+    const summaryCard = document.getElementById('mobileAiSummaryCard');
+    const summaryBody = document.getElementById('mobileAiSummaryBody');
+    const summaryTime = document.getElementById('mobileSummaryTime');
+    if (!summaryCard || !summaryBody) return;
+
+    summaryCard.style.display = 'block';
+    if (summaryTime) summaryTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    summaryBody.innerHTML = `<div style="color:var(--text-muted); font-size:0.85rem; font-style:italic;">Local LLM model generating summary...</div>`;
+
+    const events = notes.filter(n => n.type === '[EVENT]');
+    const tasks = notes.filter(n => n.type === '[TASK]');
+
+    let textPrompt = notes.map(n => n.content || n.transcript || '').filter(t => t).join(' . ');
+    if (!textPrompt) textPrompt = "Workspace contains notes and events.";
+    if (textPrompt.length > 400) textPrompt = textPrompt.substring(0, 400);
+
+    let generatedText = "";
+    try {
+      if (!localSummarizer) {
+        env.allowLocalModels = false;
+        localSummarizer = await pipeline('summarization', 'Xenova/t5-small');
+      }
+      const res = await localSummarizer(textPrompt, { max_new_tokens: 50, min_new_tokens: 15 });
+      if (res && res[0] && res[0].summary_text) {
+        generatedText = res[0].summary_text;
+      }
+    } catch (err) {
+      console.warn("Mobile local AI summary fallback:", err);
+    }
+
+    if (!generatedText) {
+      generatedText = `Your workspace has ${events.length} event(s) and ${tasks.length} task(s). Recent focus is on captured notes and voice entries.`;
+    }
+
+    summaryBody.innerHTML = `
+      <p style="margin:0; line-height:1.5; font-size:13px;"><strong>High-Level Overview:</strong> ${generatedText}</p>
+    `;
+  }
+
+  if (mobileGenerateOverviewBtn) {
+    mobileGenerateOverviewBtn.addEventListener('click', runMobileLocalAISummary);
+  }
+
+  // --- Collections View & Tag Filters ---
+  async function loadCollections() {
+    const notes = await db.getAllNotes(currentFilter);
+    if (collectionsCount) collectionsCount.textContent = `( ${notes.length} )`;
+    if (collectionsGrid) {
+      if (notes.length === 0) {
+        collectionsGrid.innerHTML = `<div class="empty-state-text" style="grid-column: span 2; padding: 20px 0;">No memories found</div>`;
+      } else {
+        collectionsGrid.innerHTML = notes.map(n => renderCardHtml(n)).join('');
+        attachCardClickHandlers(collectionsGrid);
+      }
+    }
+  }
+
+  async function updateTagFilters() {
+    const allNotes = await db.getAllNotes();
+    const tagCounts = {};
+    allNotes.forEach(n => {
+      const seen = new Set();
+      if (n.tags && Array.isArray(n.tags)) {
+        n.tags.forEach(t => {
+          const clean = String(t).trim().toLowerCase().replace(/^\[|\]$/g, '').replace(/^#/, '');
+          if (clean && !seen.has(clean)) {
+            seen.add(clean);
+            tagCounts[clean] = (tagCounts[clean] || 0) + 1;
+          }
+        });
+      }
+      const text = ((n.content || '') + ' ' + (n.transcript || '')).toLowerCase();
+      const matches = text.match(/#([a-zA-Z0-9_\-]+)/g);
+      if (matches) {
+        matches.forEach(m => {
+          const clean = m.replace(/^#/, '').trim();
+          if (clean && !seen.has(clean)) {
+            seen.add(clean);
+            tagCounts[clean] = (tagCounts[clean] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    if (!mobileTagFilters) return;
+    const activeTag = currentFilter ? currentFilter.toLowerCase().replace(/^#/, '') : null;
+    mobileTagFilters.innerHTML = `<button class="tag-chip ${activeTag === null ? 'active' : ''}" data-tag="all">ALL (${allNotes.length})</button>`;
+
+    Object.keys(tagCounts).sort().forEach(tag => {
+      const btn = document.createElement('button');
+      btn.className = `tag-chip ${activeTag === tag ? 'active' : ''}`;
+      btn.textContent = `#${tag.toUpperCase()} (${tagCounts[tag]})`;
+      btn.dataset.tag = tag;
+      btn.onclick = () => {
+        currentFilter = tag;
+        if (mobilePillCollectionsBtn) mobilePillCollectionsBtn.click();
+        refreshAll();
+      };
+      mobileTagFilters.appendChild(btn);
+    });
+
+    const allBtn = mobileTagFilters.querySelector('[data-tag="all"]');
+    if (allBtn) {
+      allBtn.onclick = () => {
+        currentFilter = null;
+        refreshAll();
+      };
+    }
+  }
+
+  // Render Card HTML
+  function renderCardHtml(n) {
+    const timeStr = new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const typeLabel = (n.type || '[NOTE]').replace(/^\[|\]$/g, '');
+
+    if (n.type === '[PHOTO]' && n.imageData) {
+      return `
+        <div class="memory-item photo-card" data-id="${n.id}" style="background-image: url('${n.imageData}');">
+          <div class="card-overlay"></div>
+          <div class="card-content-wrap">
+            <div class="item-header-row">
+              <span class="item-type">${typeLabel}</span>
+              ${n.isPinned ? '<span>📌</span>' : ''}
+            </div>
+            <div class="item-content">${escapeHtml(n.content || 'Photo Attachment')}</div>
+            <div class="item-time">${timeStr}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="memory-item" data-id="${n.id}">
+        <div class="item-header-row">
+          <span class="item-type">${typeLabel}</span>
+          ${n.isPinned ? '<span>📌</span>' : ''}
+        </div>
+        <div class="item-content">${escapeHtml(n.content || n.transcript || 'Note Entry')}</div>
+        <div class="item-time">${timeStr}</div>
+      </div>
+    `;
+  }
+
+  function attachCardClickHandlers(container) {
+    container.querySelectorAll('.memory-item').forEach(card => {
+      card.addEventListener('click', async () => {
+        const id = Number(card.dataset.id);
+        const notes = await db.getAllNotes();
+        const note = notes.find(n => n.id === id);
+        if (note) openViewModal(note);
+      });
+    });
+  }
+
+  // --- Add Modal & Type Switching ---
+  if (mobilePillAddBtn) {
+    mobilePillAddBtn.addEventListener('click', () => {
+      addModal.classList.add('active');
+      addContent.value = '';
+      addTags.value = '';
+      if (addEventDate) addEventDate.value = '';
+      if (addPhotoInput) addPhotoInput.value = '';
+      currentNoteType = '[NOTE]';
+      updateTypeUI();
+    });
+  }
 
   document.querySelectorAll('.close-sheet').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      e.target.closest('.bottom-sheet').classList.remove('active');
+      const sheet = e.target.closest('.bottom-sheet');
+      if (sheet) sheet.classList.remove('active');
     });
   });
 
-  // Type Selector
+  // Type Selector buttons
   document.querySelectorAll('.type-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
@@ -106,289 +379,164 @@ function setupListeners() {
     });
   });
 
+  function updateTypeUI() {
+    const eventGroup = document.getElementById('eventFieldGroup');
+    const photoGroup = document.getElementById('photoFieldGroup');
+    const voiceGroup = document.getElementById('voice-controls');
+
+    if (eventGroup) eventGroup.classList.add('hidden');
+    if (photoGroup) photoGroup.classList.add('hidden');
+    if (voiceGroup) voiceGroup.classList.add('hidden');
+
+    if (currentNoteType === '[EVENT]' && eventGroup) eventGroup.classList.remove('hidden');
+    if (currentNoteType === '[PHOTO]' && photoGroup) photoGroup.classList.remove('hidden');
+    if (currentNoteType === '[VOICE]' && voiceGroup) voiceGroup.classList.remove('hidden');
+  }
+
   // Save Note
-  document.getElementById('saveNoteBtn').addEventListener('click', async () => {
-    const content = document.getElementById('addContent').value;
-    const tagsStr = document.getElementById('addTags').value;
-    const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t);
-    
-    let noteData = {
-      type: currentNoteType,
-      content,
-      tags,
-      timestamp: Date.now(),
-      isPinned: false
-    };
+  if (saveNoteBtn) {
+    saveNoteBtn.addEventListener('click', async () => {
+      const content = addContent.value;
+      const tagsStr = addTags.value;
+      let tags = tagsStr.split(/[,#\s]+/).map(t => t.trim().toLowerCase().replace(/^\[|\]$/g, '')).filter(t => t);
 
-    if (currentNoteType === '[EVENT]') {
-      noteData.eventDate = document.getElementById('addEventDate').value;
-    }
-    if (currentNoteType === '[PHOTO]') {
-      const file = document.getElementById('addPhotoInput').files[0];
-      if (file) {
-        noteData.imageData = await fileToBase64(file);
+      // Auto extract hashtags from content text
+      if (content) {
+        const matches = content.match(/#([a-zA-Z0-9_\-]+)/g);
+        if (matches) {
+          matches.forEach(m => {
+            const clean = m.replace(/^#/, '').toLowerCase();
+            if (!tags.includes(clean)) tags.push(clean);
+          });
+        }
       }
-    }
-    if (currentNoteType === '[VOICE]' && recordedAudioBlob) {
-      noteData.audioBlob = recordedAudioBlob;
-      noteData.transcript = document.getElementById('addContent').value; 
-    }
 
-    await db.addNote(noteData);
-    addModal.classList.remove('active');
-    loadData();
-  });
+      let noteData = {
+        type: currentNoteType,
+        content,
+        tags,
+        timestamp: new Date().toISOString(),
+        isPinned: false
+      };
 
-  // Settings
-  document.getElementById('settingsBtn').addEventListener('click', () => {
-    settingsModal.classList.add('active');
-  });
-  document.getElementById('themeSelect').addEventListener('change', (e) => {
-    document.documentElement.setAttribute('data-theme', e.target.value);
-  });
-  document.getElementById('switchToDesktop').addEventListener('click', () => {
-    localStorage.setItem('preferred_ui', 'desktop');
-    window.location.href = '../desktop/index.html';
-  });
-  
-  setupRecording();
-}
+      if (currentNoteType === '[EVENT]' && addEventDate) {
+        noteData.eventDate = addEventDate.value;
+      }
+      if (currentNoteType === '[PHOTO]' && addPhotoInput && addPhotoInput.files.length > 0) {
+        noteData.imageData = await fileToBase64(addPhotoInput.files[0]);
+      }
+      if (currentNoteType === '[VOICE]' && recordedAudioBlob) {
+        noteData.audioBlob = recordedAudioBlob;
+        noteData.transcript = content;
+      }
 
-function updateTypeUI() {
-  document.getElementById('addEventDate').classList.add('hidden');
-  document.getElementById('addPhotoInput').classList.add('hidden');
-  document.getElementById('voice-controls').classList.add('hidden');
-  document.getElementById('addContent').placeholder = "What's on your mind?";
-  document.getElementById('addContent').classList.remove('hidden');
-
-  if (currentNoteType === '[EVENT]') {
-    document.getElementById('addEventDate').classList.remove('hidden');
-  } else if (currentNoteType === '[PHOTO]') {
-    document.getElementById('addPhotoInput').classList.remove('hidden');
-  } else if (currentNoteType === '[VOICE]') {
-    document.getElementById('voice-controls').classList.remove('hidden');
-    document.getElementById('addContent').placeholder = "Transcript will appear here...";
-  } else if (currentNoteType === '[TASK]') {
-    document.getElementById('addContent').placeholder = "What needs to be done?";
+      await db.addNote(noteData);
+      addModal.classList.remove('active');
+      await refreshAll();
+    });
   }
-}
 
-async function loadData() {
-  const notes = await db.getAllNotes();
-  
-  // Overview Data
-  const today = new Date().toDateString();
-  const events = notes.filter(n => n.type === '[EVENT]');
-  const tasks = notes.filter(n => n.type === '[TASK]');
-  
-  const todayEvents = events.filter(e => e.eventDate && new Date(e.eventDate).toDateString() === today);
-  
-  document.getElementById('overview-hero-text').textContent = `You have ${todayEvents.length} events and ${tasks.length} tasks today.`;
-  
-  const eventsList = document.getElementById('overview-events-list');
-  eventsList.innerHTML = '';
-  events.slice(0, 5).forEach(e => {
-    const el = document.createElement('div');
-    el.className = 'list-card';
-    el.innerHTML = `<strong>${e.content}</strong><span style="font-size:0.8rem;color:var(--text-muted)">${new Date(e.eventDate).toLocaleString()}</span>`;
-    el.onclick = () => openViewModal(e);
-    eventsList.appendChild(el);
-  });
+  // --- View Modal ---
+  function openViewModal(note) {
+    const viewType = document.getElementById('view-type');
+    const viewContentArea = document.getElementById('view-content-area');
+    const viewPinBtn = document.getElementById('viewPinBtn');
+    const viewDeleteBtn = document.getElementById('viewDeleteBtn');
 
-  const tasksList = document.getElementById('overview-tasks-list');
-  tasksList.innerHTML = '';
-  tasks.slice(0, 5).forEach(t => {
-    const el = document.createElement('div');
-    el.className = 'list-card task-card';
-    el.innerHTML = `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>
-      <span>${t.content}</span>
-    `;
-    el.onclick = () => openViewModal(t);
-    tasksList.appendChild(el);
-  });
+    if (viewType) viewType.textContent = (note.type || '[NOTE]').replace(/^\[|\]$/g, '');
+    if (viewContentArea) {
+      let imageHtml = note.imageData ? `<img src="${note.imageData}" class="view-image" style="width:100%; border-radius:16px; margin-top:12px;">` : '';
+      let tagsHtml = note.tags && note.tags.length > 0 ? `<div class="view-tags" style="margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;">${note.tags.map(t => `<span class="tag-pill" style="background:var(--input-bg); padding:4px 10px; border-radius:9999px; font-size:11px;">#${t.replace(/^#/, '')}</span>`).join('')}</div>` : '';
 
-  // Collections Data
-  renderCollections(notes, document.getElementById('collections-grid'));
-}
-
-function renderCollections(notes, container) {
-  container.innerHTML = '';
-  notes.forEach((note, index) => {
-    const card = document.createElement('div');
-    const seed = (typeof note.id === 'number' ? note.id * 31 : index * 47) + (note.timestamp ? Number(note.timestamp) || 0 : 0);
-    const isSquare = ((seed * 19 + 7) % 5) < 2;
-    const shapeClass = isSquare ? 'shape-square' : 'shape-rect';
-
-    card.className = `grid-card ${shapeClass}`;
-    card.onclick = () => openViewModal(note);
-
-    const typeText = note.type ? note.type.replace(/^\[|\]$/g, '') : 'NOTE';
-    let innerHTML = `<div class="type-badge">${typeText}</div>`;
-
-    if (note.type === '[PHOTO]' && note.imageData) {
-      card.classList.add('photo-card');
-      card.style.backgroundImage = `url(${note.imageData})`;
-      innerHTML += `<div class="content-text">${note.content || note.transcript || ''}</div>`;
-    } else if (note.type === '[VOICE]') {
-      innerHTML += `
-        <div class="voice-waveform">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
-        </div>
-        <div class="content-text">${note.transcript || note.content || 'Voice Note'}</div>
+      viewContentArea.innerHTML = `
+        <div class="view-meta">${new Date(note.timestamp).toLocaleString()}</div>
+        <div style="font-size:1rem; line-height:1.5;">${escapeHtml(note.content || note.transcript || '')}</div>
+        ${imageHtml}
+        ${tagsHtml}
       `;
-    } else if (note.type === '[TASK]') {
-      innerHTML += `
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom: 8px; color: var(--accent-color);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-        </div>
-        <div class="content-text">${note.content || ''}</div>
-      `;
+    }
+
+    if (viewPinBtn) {
+      viewPinBtn.onclick = async () => {
+        note.isPinned = !note.isPinned;
+        await db.updateNote(note);
+        viewModal.classList.remove('active');
+        await refreshAll();
+      };
+    }
+
+    if (viewDeleteBtn) {
+      viewDeleteBtn.onclick = async () => {
+        if (confirm('Delete this memory?')) {
+          await db.deleteNote(note.id);
+          viewModal.classList.remove('active');
+          await refreshAll();
+        }
+      };
+    }
+
+    viewModal.classList.add('active');
+  }
+
+  // --- Search Overlay ---
+  if (mobilePillSearchBtn) {
+    mobilePillSearchBtn.addEventListener('click', async () => {
+      searchOverlay.classList.add('active');
+      if (searchInput) {
+        searchInput.value = '';
+        setTimeout(() => searchInput.focus(), 100);
+      }
+      const allNotes = await db.getAllNotes();
+      renderSearchResults(allNotes);
+    });
+  }
+
+  if (closeSearchBtn) {
+    closeSearchBtn.addEventListener('click', () => {
+      searchOverlay.classList.remove('active');
+      if (searchInput) searchInput.value = '';
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', async () => {
+      const q = searchInput.value.toLowerCase().trim();
+      const allNotes = await db.getAllNotes();
+      if (!q) {
+        renderSearchResults(allNotes);
+        return;
+      }
+      const filtered = allNotes.filter(n => {
+        const text = ((n.content || '') + ' ' + (n.transcript || '')).toLowerCase();
+        const tags = n.tags ? n.tags.join(' ').toLowerCase() : '';
+        return text.includes(q) || tags.includes(q);
+      });
+      renderSearchResults(filtered);
+    });
+  }
+
+  function renderSearchResults(notes) {
+    if (!searchResults) return;
+    if (notes.length === 0) {
+      searchResults.innerHTML = `<div class="empty-state-text" style="grid-column: span 2;">No search results found</div>`;
     } else {
-      innerHTML += `<div class="content-text">${note.content || ''}</div>`;
+      searchResults.innerHTML = notes.map(n => renderCardHtml(n)).join('');
+      attachCardClickHandlers(searchResults);
     }
-
-    card.innerHTML = innerHTML;
-    container.appendChild(card);
-  });
-}
-
-async function renderSearch() {
-  const query = searchInput.value.toLowerCase();
-  const notes = await db.getAllNotes();
-  const filtered = notes.filter(n => 
-    (n.content && n.content.toLowerCase().includes(query)) ||
-    (n.transcript && n.transcript.toLowerCase().includes(query)) ||
-    (n.tags && n.tags.some(t => t.toLowerCase().includes(query)))
-  );
-  renderCollections(filtered, searchResults);
-}
-
-let currentViewNote = null;
-function openViewModal(note) {
-  currentViewNote = note;
-  viewModal.classList.add('active');
-  document.getElementById('view-type').textContent = note.type || '[NOTE]';
-  
-  const contentArea = document.getElementById('view-content-area');
-  let html = `<div class="view-meta">${new Date(note.timestamp).toLocaleString()}</div>`;
-  
-  if (note.type === '[PHOTO]' && note.imageData) {
-    html += `<img src="${note.imageData}" class="view-image">`;
-  }
-  
-  if (note.type === '[EVENT]' && note.eventDate) {
-    html += `<div style="color:var(--accent-color); margin-bottom:16px;">Event Date: ${new Date(note.eventDate).toLocaleString()}</div>`;
   }
 
-  html += `<div style="font-size:1.1rem; line-height:1.5;">${note.content || note.transcript || ''}</div>`;
-  
-  if (note.type === '[VOICE]' && note.audioBlob) {
-    html += `<audio controls src="${URL.createObjectURL(note.audioBlob)}" style="margin-top:16px; width:100%;"></audio>`;
+  // Helper: File to base64
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
+    });
   }
 
-  if (note.tags && note.tags.length > 0) {
-    html += `<div class="view-tags">` + note.tags.map(t => `<span class="tag-pill">#${t}</span>`).join('') + `</div>`;
-  }
-
-  contentArea.innerHTML = html;
-
-  // Pin state
-  const pinBtn = document.getElementById('viewPinBtn');
-  if (note.isPinned) pinBtn.style.color = 'var(--accent-color)';
-  else pinBtn.style.color = 'var(--text-color)';
-}
-
-document.getElementById('viewDeleteBtn').addEventListener('click', async () => {
-  if (currentViewNote) {
-    await db.deleteNote(currentViewNote.id);
-    viewModal.classList.remove('active');
-    loadData();
+  // Helper: Escape HTML
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 });
-
-document.getElementById('viewPinBtn').addEventListener('click', async () => {
-  if (currentViewNote) {
-    await db.togglePin(currentViewNote.id);
-    currentViewNote.isPinned = !currentViewNote.isPinned;
-    const pinBtn = document.getElementById('viewPinBtn');
-    pinBtn.style.color = currentViewNote.isPinned ? 'var(--accent-color)' : 'var(--text-color)';
-    loadData();
-  }
-});
-
-// Recording setup
-let mediaRecorder;
-let audioChunks = [];
-let recordedAudioBlob = null;
-let isRecording = false;
-
-function setupRecording() {
-  const recordBtn = document.getElementById('recordBtn');
-  const statusEl = document.getElementById('recordingStatus');
-
-  recordBtn.addEventListener('click', async () => {
-    if (!isRecording) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        
-        mediaRecorder.ondataavailable = e => {
-          if (e.data.size > 0) audioChunks.push(e.data);
-        };
-        
-        mediaRecorder.onstop = async () => {
-          recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          statusEl.textContent = 'Processing audio...';
-          
-          if (transcriber) {
-            try {
-              // Read blob as float32 array for whisper
-              const arrayBuffer = await recordedAudioBlob.arrayBuffer();
-              const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-              const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-              const audioData = audioBuffer.getChannelData(0);
-              
-              const output = await transcriber(audioData);
-              const transcript = output.text.trim();
-              document.getElementById('addContent').value = transcript;
-              statusEl.textContent = 'Transcription complete.';
-            } catch (err) {
-              console.error(err);
-              statusEl.textContent = 'Transcription failed.';
-            }
-          } else {
-            statusEl.textContent = 'Audio recorded. (Transcriber not loaded)';
-          }
-        };
-
-        mediaRecorder.start();
-        isRecording = true;
-        recordBtn.textContent = 'Stop Recording';
-        recordBtn.classList.add('primary-btn');
-        statusEl.textContent = 'Recording...';
-      } catch (err) {
-        console.error('Microphone error', err);
-        statusEl.textContent = 'Error accessing microphone.';
-      }
-    } else {
-      mediaRecorder.stop();
-      mediaRecorder.stream.getTracks().forEach(t => t.stop());
-      isRecording = false;
-      recordBtn.textContent = 'Start Recording';
-      recordBtn.classList.remove('primary-btn');
-    }
-  });
-}
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-window.addEventListener('DOMContentLoaded', init);
