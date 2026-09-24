@@ -703,13 +703,18 @@ h1, h2, h3, .brand {
   border-radius: 28px 28px 0 0;
   width: 100%;
   max-width: 600px;
-  max-height: 85vh;
+  height: auto;
+  max-height: 88vh;
+  max-height: 88dvh;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.7);
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
+  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.75);
   animation: slideUpSheet 0.3s var(--m3-easing);
   position: relative;
+  overflow: hidden;
+  margin: 0 auto;
 }
 
 @keyframes slideUpSheet {
@@ -771,10 +776,13 @@ h1, h2, h3, .brand {
 
 .sheet-content {
   overflow-y: auto;
-  flex-grow: 1;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding-right: 4px;
 }
 
 .form-group {
@@ -800,6 +808,12 @@ h1, h2, h3, .brand {
   font-family: 'Geist', sans-serif;
   font-size: 14px;
   outline: none;
+}
+
+.form-group textarea {
+  min-height: 85px;
+  max-height: 140px;
+  resize: vertical;
 }
 
 .type-selector {

@@ -111,15 +111,66 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Theme Toggle
-  document.querySelectorAll('[data-setting="theme"]').forEach(btn => {
+  // Settings Toggles (Theme & Accent)
+  document.querySelectorAll('.toggle-btn[data-setting]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-setting="theme"]').forEach(b => b.classList.remove('active'));
+      const setting = btn.getAttribute('data-setting');
+      const value = btn.getAttribute('data-value');
+      const group = btn.parentElement;
+
+      group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const val = btn.getAttribute('data-value');
-      document.documentElement.setAttribute('data-theme', val);
+
+      if (setting === 'theme') {
+        applyTheme(value);
+      } else if (setting === 'accent') {
+        applyAccent(value);
+      }
     });
   });
+
+  function applyTheme(theme) {
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    localStorage.setItem('essential_theme', theme);
+  }
+
+  function applyAccent(accent) {
+    const root = document.documentElement;
+    if (accent === 'yellow') {
+      root.style.setProperty('--accent-color', '#FFC700');
+      root.setAttribute('data-accent', 'yellow');
+    } else {
+      root.style.setProperty('--accent-color', '#FF2E2E');
+      root.setAttribute('data-accent', 'red');
+    }
+    localStorage.setItem('essential_accent', accent);
+  }
+
+  function loadPreferences() {
+    const savedTheme = localStorage.getItem('essential_theme') || 'dark';
+    const savedAccent = localStorage.getItem('essential_accent') || 'red';
+
+    applyTheme(savedTheme);
+    applyAccent(savedAccent);
+
+    const themeBtn = document.querySelector(`.toggle-btn[data-setting="theme"][data-value="${savedTheme}"]`);
+    if (themeBtn) {
+      themeBtn.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      themeBtn.classList.add('active');
+    }
+
+    const accentBtn = document.querySelector(`.toggle-btn[data-setting="accent"][data-value="${savedAccent}"]`);
+    if (accentBtn) {
+      accentBtn.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      accentBtn.classList.add('active');
+    }
+  }
+
+  loadPreferences();
 
   // --- Overview Dashboard ---
   async function updateOverviewData() {
@@ -350,6 +401,75 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // --- Add Modal & Type Switching ---
+  let isRecording = false;
+  let recognition = null;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        transcript += event.results[i][0].transcript;
+      }
+      if (addContent) addContent.value = transcript;
+    };
+  }
+
+  if (recordBtn) {
+    recordBtn.addEventListener('click', async () => {
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            stream.getTracks().forEach(track => track.stop());
+          };
+
+          mediaRecorder.start();
+          if (recognition) {
+            try { recognition.start(); } catch (e) {}
+          }
+
+          isRecording = true;
+          recordBtn.textContent = '⏹ Stop Recording';
+          recordBtn.style.backgroundColor = 'var(--accent-color)';
+          recordBtn.style.color = '#000000';
+          if (recordingStatus) {
+            recordingStatus.innerHTML = `<span style="color:var(--accent-color); font-weight:700; font-size:11px; font-family:'Ntype Mono',monospace;">🔴 RECORDING AUDIO...</span>`;
+          }
+        } catch (err) {
+          console.error("Microphone permission error:", err);
+          alert("Microphone access is required to record voice notes.");
+        }
+      } else {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+        if (recognition) {
+          try { recognition.stop(); } catch (e) {}
+        }
+        isRecording = false;
+        recordBtn.textContent = 'Start Recording';
+        recordBtn.style.backgroundColor = '';
+        recordBtn.style.color = '';
+        if (recordingStatus) {
+          recordingStatus.innerHTML = `<span style="color:#4CAF50; font-weight:700; font-size:11px; font-family:'Ntype Mono',monospace;">✓ Audio recorded & ready</span>`;
+        }
+      }
+    });
+  }
+
   if (mobilePillAddBtn) {
     mobilePillAddBtn.addEventListener('click', () => {
       addModal.classList.add('active');
@@ -357,7 +477,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       addTags.value = '';
       if (addEventDate) addEventDate.value = '';
       if (addPhotoInput) addPhotoInput.value = '';
+      if (recordingStatus) recordingStatus.innerHTML = '';
+      if (recordBtn) {
+        recordBtn.textContent = 'Start Recording';
+        recordBtn.style.backgroundColor = '';
+        recordBtn.style.color = '';
+      }
+      recordedAudioBlob = null;
+      isRecording = false;
       currentNoteType = '[NOTE]';
+
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+      const defaultNoteBtn = document.querySelector('.type-btn[data-type="[NOTE]"]');
+      if (defaultNoteBtn) defaultNoteBtn.classList.add('active');
+
       updateTypeUI();
     });
   }
