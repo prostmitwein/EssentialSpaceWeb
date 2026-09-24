@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Essential Space — Nothing OS Desktop</title>
+    <script>
+        // Router preference check
+        const preferred = localStorage.getItem('preferred_ui');
+        if (preferred === 'mobile') {
+            window.location.replace('../mobile/index.html');
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="bg-dot-grid"></div>
+
+    <div class="app-container">
+        <header>
+            <div class="brand-group">
+                <h1 class="brand">ESSENTIAL SPACE</h1>
+                <span class="sub-version">( 2 )</span>
+            </div>
+            <div class="header-controls">
+                <div class="header-clock-box">
+                    <span id="headerClock" class="header-clock">00:00</span>
+                </div>
+                <div class="dots-matrix">:::</div>
+                <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Menu">☰</button>
+            </div>
+        </header>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <div class="main-wrapper">
+            <main>
+                <section class="widgets-grid" id="overviewSection" style="display: none;">
+                    <div class="widget" id="recentWidget">
+                        <div class="widget-header">
+                            <span class="widget-title">RECENT CAPTURE</span>
+                            <span class="widget-glyph">•</span>
+                        </div>
+                        <div class="widget-content">
+                            <div class="preview-box" id="recentPreview"></div>
+                            <p id="recentText">No recent items</p>
+                        </div>
+                        <div class="widget-footer" id="recentTime">--:--</div>
+                    </div>
+                    <div class="widget" id="upcomingWidget">
+                        <div class="widget-header">
+                            <span class="widget-title">UPCOMING EVENT</span>
+                            <span class="widget-glyph">•</span>
+                        </div>
+                        <div class="widget-content text-content">
+                            <p id="upcomingTitle">No upcoming events</p>
+                            <small id="upcomingDesc" class="upcoming-desc"></small>
+                        </div>
+                        <div class="widget-footer accent" id="upcomingTime">--:--</div>
+                    </div>
+                </section>
+
+                <section class="memory-section" id="collectionsSection">
+                    <div class="section-header-bar">
+                        <h2 class="section-title">MEMORIES</h2>
+                        <span class="section-glyph-count" id="itemCountDisplay">( 0 )</span>
+                    </div>
+                    <div class="memory-list" id="memoryList">
+                        <!-- Items will be injected by JS -->
+                    </div>
+                </section>
+            </main>
+
+            <aside class="filter-sidebar">
+                <h3 class="sidebar-title">TAG FILTERS</h3>
+                <ul id="tagFilterList">
+                    <li class="active" data-tag="all">ALL</li>
+                    <!-- Tags injected by JS -->
+                </ul>
+            </aside>
+        </div>
+
+        <div class="desktop-pill-container">
+            <button class="pill-btn add-pill-btn" id="pillAddBtn" aria-label="Add Note">+</button>
+
+            <div class="desktop-main-pill">
+                <button class="pill-item" id="pillOverviewBtn">OVERVIEW</button>
+                <button class="pill-item active" id="pillCollectionsBtn">COLLECTIONS</button>
+                <button class="pill-item" id="pillSettingsBtn" aria-label="Settings">☰</button>
+
+                <div class="settings-menu" id="settingsMenu">
+                    <div class="settings-header">SETTINGS</div>
+                    <div class="setting-item">
+                        <label>ACCENT</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active" data-setting="accent" data-value="red">RED</button>
+                            <button class="toggle-btn" data-setting="accent" data-value="yellow">YEL</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>THEME</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active" data-setting="theme" data-value="dark">DRK</button>
+                            <button class="toggle-btn" data-setting="theme" data-value="light">LGT</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>VIEW MODE</label>
+                        <button class="toggle-btn" id="switchToMobileBtn">MOBILE UI 📱</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="pill-btn search-pill-btn" id="pillSearchBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>SEARCH</span>
+            </button>
+        </div>
+
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search memories..." autofocus>
+                <button class="close-search" id="closeSearchBtn">×</button>
+            </div>
+        </div>
+        <!-- Add Note Modal -->
+        <div class="modal-overlay" id="addModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>NEW ENTRY</h3>
+                    <button class="close-btn" id="closeAddModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>TYPE</label>
+                        <select id="noteType">
+                            <option value="[NOTE]">NOTE</option>
+                            <option value="[PHOTO]">PHOTO</option>
+                            <option value="[VOICE]">VOICE</option>
+                            <option value="[EVENT]">EVENT</option>
+                            <option value="[IDEA]">IDEA</option>
+                            <option value="[TASK]">TASK</option>
+                        </select>
+                    </div>
+
+                    <!-- Event Specific Fields -->
+                    <div id="eventFields" style="display: none;">
+                        <div class="form-group">
+                            <label>DATE & TIME</label>
+                            <input type="datetime-local" id="eventDate">
+                        </div>
+                    </div>
+
+                    <!-- Voice Recorder UI -->
+                    <div id="voiceRecorder" style="display: none;">
+                        <div class="recorder-container">
+                            <div class="recorder-header">
+                                <div class="recorder-status">IDLE</div>
+                                <div class="recorder-timer">00:00</div>
+                            </div>
+                            <div class="recorder-visualizer" id="recorderVisualizer">
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                            </div>
+                            <div class="recorder-controls">
+                                <button id="recordBtn" class="rec-btn" title="Record"></button>
+                                <button id="stopBtn" class="stop-btn" disabled title="Stop"></button>
+                                <button id="playPreviewBtn" class="play-btn" disabled title="Play Preview">▶</button>
+                                <button id="deleteRecordingBtn" class="del-btn" disabled title="Delete">×</button>
+                            </div>
+                            <div id="transcriptionPreview" class="transcription-preview"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>CONTENT / DESCRIPTION</label>
+                        <div class="textarea-wrapper" style="position: relative;">
+                            <textarea id="noteContent" rows="4" placeholder="Write entry content..."></textarea>
+                            <button id="micBtn" class="mic-btn" title="Dictate">🎤</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>TAGS (Press Enter)</label>
+                        <div class="tag-input-container">
+                            <div id="addTagsList" class="tags-list"></div>
+                            <input type="text" id="addTagInput" placeholder="Add tag...">
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="imageUploadGroup" style="display: none;">
+                        <label>IMAGE <span id="aiStatus"
+                                style="font-size: 11px; color: var(--accent-color); margin-left: 10px;"></span></label>
+                        <input type="file" id="noteImage" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="modal-actions-right" style="width: 100%; display: flex; justify-content: flex-end;">
+                        <button class="btn-primary" id="saveNoteBtn">SAVE ENTRY</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Note Modal -->
+        <div class="modal-overlay" id="viewModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="viewType">ENTRY</h3>
+                    <button class="close-btn" id="closeViewModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <div id="viewImageContainer"></div>
+                    <div id="viewContent" class="view-text"></div>
+
+                    <div class="form-group">
+                        <label>TAGS</label>
+                        <div class="tag-input-container">
+                            <div id="viewTagsList" class="tags-list"></div>
+                            <input type="text" id="viewTagInput" placeholder="Add tag...">
+                        </div>
+                    </div>
+
+                    <div class="meta-info">
+                        <span id="viewTime"></span>
+                        <div id="viewEventDetails" style="margin-top: 5px; color: var(--accent-color);"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="pinNoteBtn">PIN</button>
+                    <button class="btn-danger" id="deleteNoteBtn">DELETE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../db.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
