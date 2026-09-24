@@ -369,6 +369,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Close sheet when tapping backdrop (outside container)
+  document.querySelectorAll('.bottom-sheet').forEach(sheet => {
+    sheet.addEventListener('click', (e) => {
+      if (e.target === sheet) {
+        sheet.classList.remove('active');
+      }
+    });
+  });
+
   // Type Selector buttons
   document.querySelectorAll('.type-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -443,15 +452,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     const viewPinBtn = document.getElementById('viewPinBtn');
     const viewDeleteBtn = document.getElementById('viewDeleteBtn');
 
-    if (viewType) viewType.textContent = (note.type || '[NOTE]').replace(/^\[|\]$/g, '');
+    const cleanType = (note.type || '[NOTE]').replace(/^\[|\]$/g, '');
+    if (viewType) viewType.textContent = cleanType;
+
+    if (viewPinBtn) {
+      viewPinBtn.innerHTML = note.isPinned ? '📌 <span style="font-size:10px; font-weight:700;">PINNED</span>' : '📌';
+      viewPinBtn.title = note.isPinned ? 'Unpin Note' : 'Pin Note';
+      viewPinBtn.style.opacity = note.isPinned ? '1' : '0.6';
+    }
+
     if (viewContentArea) {
-      let imageHtml = note.imageData ? `<img src="${note.imageData}" class="view-image" style="width:100%; border-radius:16px; margin-top:12px;">` : '';
-      let tagsHtml = note.tags && note.tags.length > 0 ? `<div class="view-tags" style="margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;">${note.tags.map(t => `<span class="tag-pill" style="background:var(--input-bg); padding:4px 10px; border-radius:9999px; font-size:11px;">#${t.replace(/^#/, '')}</span>`).join('')}</div>` : '';
+      let imageHtml = note.imageData ? `<div style="margin-top:14px;"><img src="${note.imageData}" class="view-image" style="width:100%; border-radius:16px; border:1px solid var(--border-color); object-fit:cover; max-height:300px;"></div>` : '';
+      let audioHtml = '';
+      if (note.audioBlob) {
+        const audioUrl = URL.createObjectURL(note.audioBlob);
+        audioHtml = `<div style="margin-top:14px; background:var(--input-bg); padding:12px; border-radius:16px; border:1px solid var(--border-color);"><audio controls src="${audioUrl}" style="width:100%; height:40px;"></audio></div>`;
+      }
+      let eventHtml = note.eventDate ? `<div style="margin-top:12px; color:var(--accent-color); font-family:'Ntype',sans-serif; font-size:11px; letter-spacing:1px;">📅 EVENT DATE: ${new Date(note.eventDate).toLocaleString()}</div>` : '';
+      let tagsHtml = note.tags && note.tags.length > 0 ? `<div class="view-tags" style="margin-top:14px; display:flex; gap:6px; flex-wrap:wrap;">${note.tags.map(t => `<span class="tag-pill" style="background:var(--input-bg); border:1px solid var(--border-color); color:var(--text-color); padding:4px 10px; border-radius:9999px; font-size:11px; font-family:'Geist Mono',monospace;">#${t.replace(/^#/, '')}</span>`).join('')}</div>` : '';
+
+      const timeFormatted = new Date(note.timestamp).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 
       viewContentArea.innerHTML = `
-        <div class="view-meta">${new Date(note.timestamp).toLocaleString()}</div>
-        <div style="font-size:1rem; line-height:1.5;">${escapeHtml(note.content || note.transcript || '')}</div>
+        <div class="view-meta" style="font-size:11px; font-family:'Ntype Mono',monospace; color:var(--text-muted); margin-bottom:10px;">TIMESTAMP: ${timeFormatted}</div>
+        <div style="font-size:1rem; line-height:1.6; word-break:break-word; white-space:pre-wrap;">${escapeHtml(note.content || note.transcript || 'No text content')}</div>
+        ${eventHtml}
         ${imageHtml}
+        ${audioHtml}
         ${tagsHtml}
       `;
     }

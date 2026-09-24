@@ -605,9 +605,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     function applyAccent(accent) {
         const root = document.documentElement;
         if (accent === 'yellow') {
-            root.style.setProperty('--accent-color', 'var(--accent-yellow)');
+            root.style.setProperty('--accent-color', '#FFC700');
+            root.setAttribute('data-accent', 'yellow');
         } else {
-            root.style.setProperty('--accent-color', 'var(--accent-red)');
+            root.style.setProperty('--accent-color', '#FF2E2E');
+            root.setAttribute('data-accent', 'red');
         }
         localStorage.setItem('essential_accent', accent);
     }

@@ -16,25 +16,33 @@
 }
 
 :root {
-    --bg-color: #202024;
+    --bg-color: #1A1A1E;
     --text-color: #F8F8FA;
     --text-muted: #A2A2AC;
     --accent-color: #FF2E2E;
     --accent-red: #FF2E2E;
     --accent-yellow: #FFC700;
 
-    --widget-bg: #2C2C34;
-    --item-bg: #26262E;
-    --preview-bg: #1C1C20;
-    --input-bg: #18181C;
-    --border-color: rgba(255, 255, 255, 0.24);
-    --border-hover: rgba(255, 255, 255, 0.45);
+    --widget-bg: #26262C;
+    --item-bg: #2E2E36;
+    --preview-bg: #1E1E22;
+    --input-bg: #16161A;
+    --border-color: rgba(255, 255, 255, 0.18);
+    --border-hover: rgba(255, 255, 255, 0.38);
 
     --m3-easing: cubic-bezier(0.2, 0.0, 0, 1.0);
     --font-heading: 'Ntype', 'Geist Mono', sans-serif;
     --font-body: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'Geist Mono', monospace;
     --font-ntype: 'Ntype', sans-serif;
+}
+
+[data-accent="yellow"] {
+    --accent-color: #FFC700;
+}
+
+[data-accent="red"] {
+    --accent-color: #FF2E2E;
 }
 
 [data-theme="light"] {
@@ -285,18 +293,23 @@ header {
 }
 
 .generate-overview-btn {
-    background-color: var(--accent-color);
+    background-color: var(--accent-color, #FF2E2E) !important;
+    background: var(--accent-color, #FF2E2E) !important;
     color: #000000 !important;
-    border: none;
-    border-radius: 9999px;
+    border: none !important;
+    outline: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 9999px !important;
     padding: 12px 24px;
     font-family: var(--font-ntype);
     font-size: 12px;
     letter-spacing: 1px;
     font-weight: 700;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
     transition: all 0.2s var(--m3-easing);
     box-shadow: none !important;
@@ -311,8 +324,8 @@ header {
 
 .generate-overview-btn:hover {
     transform: translateY(-2px);
-    filter: brightness(1.05);
-    box-shadow: none !important;
+    filter: brightness(1.08);
+    box-shadow: 0 4px 16px rgba(255, 46, 46, 0.25) !important;
 }
 
 /* AI Summary Card */

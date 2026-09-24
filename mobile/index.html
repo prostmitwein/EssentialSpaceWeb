@@ -141,105 +141,111 @@
 
   <!-- Add Memory Bottom Sheet Modal -->
   <div id="add-modal" class="bottom-sheet">
-    <div class="sheet-header">
-      <h3>NEW ENTRY</h3>
-      <button class="close-sheet close-btn">×</button>
-    </div>
-    <div class="sheet-content">
-      <div class="form-group">
-        <label>TYPE</label>
-        <div class="type-selector">
-          <button class="type-btn active" data-type="[NOTE]">NOTE</button>
-          <button class="type-btn" data-type="[TASK]">TASK</button>
-          <button class="type-btn" data-type="[EVENT]">EVENT</button>
-          <button class="type-btn" data-type="[PHOTO]">PHOTO</button>
-          <button class="type-btn" data-type="[VOICE]">VOICE</button>
-        </div>
+    <div class="sheet-container">
+      <div class="sheet-header">
+        <h3>NEW ENTRY</h3>
+        <button class="close-sheet close-btn">×</button>
       </div>
+      <div class="sheet-content">
+        <div class="form-group">
+          <label>TYPE</label>
+          <div class="type-selector">
+            <button class="type-btn active" data-type="[NOTE]">NOTE</button>
+            <button class="type-btn" data-type="[TASK]">TASK</button>
+            <button class="type-btn" data-type="[EVENT]">EVENT</button>
+            <button class="type-btn" data-type="[PHOTO]">PHOTO</button>
+            <button class="type-btn" data-type="[VOICE]">VOICE</button>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label>CONTENT / DESCRIPTION</label>
-        <textarea id="addContent" placeholder="Write entry content..."></textarea>
-      </div>
-      
-      <div id="extra-inputs">
-        <div id="eventFieldGroup" class="form-group hidden">
-          <label>DATE & TIME</label>
-          <input type="datetime-local" id="addEventDate">
+        <div class="form-group">
+          <label>CONTENT / DESCRIPTION</label>
+          <textarea id="addContent" placeholder="Write entry content..."></textarea>
         </div>
-        <div id="photoFieldGroup" class="form-group hidden">
-          <label>ATTACH IMAGE</label>
-          <input type="file" id="addPhotoInput" accept="image/*">
+        
+        <div id="extra-inputs">
+          <div id="eventFieldGroup" class="form-group hidden">
+            <label>DATE & TIME</label>
+            <input type="datetime-local" id="addEventDate">
+          </div>
+          <div id="photoFieldGroup" class="form-group hidden">
+            <label>ATTACH IMAGE</label>
+            <input type="file" id="addPhotoInput" accept="image/*">
+          </div>
+          <div id="voice-controls" class="form-group hidden">
+            <label>VOICE RECORDING</label>
+            <button id="recordBtn" class="btn">Start Recording</button>
+            <div id="recordingStatus"></div>
+          </div>
         </div>
-        <div id="voice-controls" class="form-group hidden">
-          <label>VOICE RECORDING</label>
-          <button id="recordBtn" class="btn">Start Recording</button>
-          <div id="recordingStatus"></div>
-        </div>
-      </div>
 
-      <div class="form-group">
-        <label>TAGS (Press Enter or space)</label>
-        <input type="text" id="addTags" placeholder="e.g. #academics, #ideas">
-      </div>
+        <div class="form-group">
+          <label>TAGS (Press Enter or space)</label>
+          <input type="text" id="addTags" placeholder="e.g. #academics, #ideas">
+        </div>
 
-      <button id="saveNoteBtn" class="btn save-note-btn">SAVE ENTRY</button>
+        <button id="saveNoteBtn" class="btn save-note-btn">SAVE ENTRY</button>
+      </div>
     </div>
   </div>
 
   <!-- View Memory Bottom Sheet Modal -->
   <div id="view-modal" class="bottom-sheet">
-    <div class="sheet-header">
-      <h3 id="view-type">MEMORY DETAILS</h3>
-      <div class="header-actions">
-        <button id="viewPinBtn" class="icon-btn" title="Pin Note">📌</button>
-        <button id="viewDeleteBtn" class="icon-btn delete-btn" title="Delete Note">🗑️</button>
-        <button class="close-sheet close-btn">×</button>
+    <div class="sheet-container">
+      <div class="sheet-header">
+        <h3 id="view-type">MEMORY DETAILS</h3>
+        <div class="header-actions">
+          <button id="viewPinBtn" class="icon-btn" title="Pin Note">📌</button>
+          <button id="viewDeleteBtn" class="icon-btn delete-btn" title="Delete Note">🗑️</button>
+          <button class="close-sheet close-btn">×</button>
+        </div>
       </div>
-    </div>
-    <div class="sheet-content" id="view-content-area">
-      <!-- Content populated via JS -->
+      <div class="sheet-content" id="view-content-area">
+        <!-- Content populated via JS -->
+      </div>
     </div>
   </div>
 
   <!-- Local AI Model Installation Modal -->
   <div id="modelInstallModal" class="bottom-sheet">
-    <div class="sheet-header">
-      <h3>INSTALL LOCAL AI MODEL</h3>
-      <button class="close-sheet close-btn" id="closeModelInstallModal">×</button>
-    </div>
-    <div class="sheet-content">
-      <div class="model-badge-row">
-        <span class="model-badge">ON-DEVICE LLM (~60 MB)</span>
+    <div class="sheet-container">
+      <div class="sheet-header">
+        <h3>INSTALL LOCAL AI MODEL</h3>
+        <button class="close-sheet close-btn" id="closeModelInstallModal">×</button>
       </div>
-      <p class="model-intro-text">
-        To generate high-level summaries privately on your phone, Essential Space uses a lightweight local AI model running on your device.
-      </p>
-      <div class="model-features-list">
-        <div class="feature-item">
-          <span class="feature-icon">🔒</span>
-          <div><strong>100% Private</strong> — Data stays on device</div>
+      <div class="sheet-content">
+        <div class="model-badge-row">
+          <span class="model-badge">ON-DEVICE LLM (~60 MB)</span>
         </div>
-        <div class="feature-item">
-          <span class="feature-icon">⚡</span>
-          <div><strong>Fast Inference</strong> — WebAssembly pipeline</div>
+        <p class="model-intro-text">
+          To generate high-level summaries privately on your phone, Essential Space uses a lightweight local AI model running on your device.
+        </p>
+        <div class="model-features-list">
+          <div class="feature-item">
+            <span class="feature-icon">🔒</span>
+            <div><strong>100% Private</strong> — Data stays on device</div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">⚡</span>
+            <div><strong>Fast Inference</strong> — WebAssembly pipeline</div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📦</span>
+            <div><strong>Compact Size</strong> — Only ~60 MB downloaded once</div>
+          </div>
         </div>
-        <div class="feature-item">
-          <span class="feature-icon">📦</span>
-          <div><strong>Compact Size</strong> — Only ~60 MB downloaded once</div>
-        </div>
-      </div>
 
-      <div id="downloadProgressContainer" style="display: none; margin-top: 16px;">
-        <div class="progress-bar-track">
-          <div id="downloadProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+        <div id="downloadProgressContainer" style="display: none; margin-top: 16px;">
+          <div class="progress-bar-track">
+            <div id="downloadProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+          <div id="downloadProgressText" class="progress-status-text">Downloading local weights... 0%</div>
         </div>
-        <div id="downloadProgressText" class="progress-status-text">Downloading local weights... 0%</div>
-      </div>
 
-      <div style="display:flex; gap:12px; margin-top: 20px;">
-        <button id="cancelModelInstallBtn" class="btn" style="flex:1;">Cancel</button>
-        <button id="startModelInstallBtn" class="btn primary-btn" style="flex:2;">Download & Install (60 MB)</button>
+        <div style="display:flex; gap:12px; margin-top: 20px;">
+          <button id="cancelModelInstallBtn" class="btn" style="flex:1;">Cancel</button>
+          <button id="startModelInstallBtn" class="btn primary-btn" style="flex:2;">Download & Install (60 MB)</button>
+        </div>
       </div>
     </div>
   </div>

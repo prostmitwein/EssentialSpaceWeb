@@ -16,25 +16,33 @@
 }
 
 :root {
-    --bg-color: #202024;
+    --bg-color: #1A1A1E;
     --text-color: #F8F8FA;
     --text-muted: #A2A2AC;
     --accent-color: #FF2E2E;
     --accent-red: #FF2E2E;
     --accent-yellow: #FFC700;
 
-    --widget-bg: #2C2C34;
-    --item-bg: #26262E;
-    --preview-bg: #1C1C20;
-    --input-bg: #18181C;
-    --border-color: rgba(255, 255, 255, 0.24);
-    --border-hover: rgba(255, 255, 255, 0.45);
+    --widget-bg: #26262C;
+    --item-bg: #2E2E36;
+    --preview-bg: #1E1E22;
+    --input-bg: #16161A;
+    --border-color: rgba(255, 255, 255, 0.18);
+    --border-hover: rgba(255, 255, 255, 0.38);
 
     --m3-easing: cubic-bezier(0.2, 0.0, 0, 1.0);
     --font-heading: 'Ntype', 'Geist Mono', sans-serif;
     --font-body: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'Geist Mono', monospace;
     --font-ntype: 'Ntype', sans-serif;
+}
+
+[data-accent="yellow"] {
+    --accent-color: #FFC700;
+}
+
+[data-accent="red"] {
+    --accent-color: #FF2E2E;
 }
 
 [data-theme="light"] {

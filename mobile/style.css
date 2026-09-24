@@ -15,15 +15,25 @@
 }
 
 :root {
-  --bg-color: #202024;
+  --bg-color: #1A1A1E;
   --text-color: #F8F8FA;
   --text-muted: #A2A2AC;
-  --accent-color: #FFC107;
-  --widget-bg: #2C2C34;
-  --item-bg: #26262E;
-  --input-bg: #18181C;
-  --border-color: rgba(255, 255, 255, 0.24);
+  --accent-color: #FF2E2E;
+  --accent-red: #FF2E2E;
+  --accent-yellow: #FFC700;
+  --widget-bg: #26262C;
+  --item-bg: #2E2E36;
+  --input-bg: #16161A;
+  --border-color: rgba(255, 255, 255, 0.18);
   --m3-easing: cubic-bezier(0.2, 0.0, 0, 1.0);
+}
+
+[data-accent="yellow"] {
+  --accent-color: #FFC700;
+}
+
+[data-accent="red"] {
+  --accent-color: #FF2E2E;
 }
 
 [data-theme='light'] {
@@ -179,10 +189,14 @@ h1, h2, h3, .brand {
 .generate-overview-btn, .save-note-btn {
   width: 100%;
   padding: 12px 18px;
-  background-color: #FFC107;
+  background-color: var(--accent-color, #FF2E2E) !important;
+  background: var(--accent-color, #FF2E2E) !important;
   color: #000000 !important;
-  border: none;
-  border-radius: 9999px;
+  border: none !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 9999px !important;
   font-family: 'Ntype', sans-serif;
   font-size: 12px;
   font-weight: 800;
@@ -194,6 +208,10 @@ h1, h2, h3, .brand {
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.generate-overview-btn span, .save-note-btn span {
+  color: #000000 !important;
 }
 
 .generate-overview-btn:active, .save-note-btn:active {
@@ -659,29 +677,86 @@ h1, h2, h3, .brand {
 .bottom-sheet {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: none;
   align-items: flex-end;
-  z-index: 150;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeInBackdrop 0.25s var(--m3-easing);
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .bottom-sheet.active {
   display: flex;
 }
 
+.sheet-container {
+  background-color: var(--widget-bg);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: 28px 28px 0 0;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.7);
+  animation: slideUpSheet 0.3s var(--m3-easing);
+  position: relative;
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 .sheet-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .sheet-header h3 {
+  font-family: 'Ntype', sans-serif;
   font-size: 13px;
   letter-spacing: 1.5px;
   color: var(--accent-color);
+  text-transform: uppercase;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-btn {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+
+.icon-btn:active {
+  transform: scale(0.9);
 }
 
 .close-btn {
@@ -690,16 +765,16 @@ h1, h2, h3, .brand {
   color: var(--text-muted);
   font-size: 24px;
   cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
 }
 
 .sheet-content {
-  background-color: var(--widget-bg);
-  border-top: 2px solid var(--border-color);
-  border-radius: 24px 24px 0 0;
-  width: 100%;
-  max-height: 85vh;
   overflow-y: auto;
-  padding: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .form-group {
